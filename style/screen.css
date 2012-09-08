@@ -1,14 +1,14 @@
-div.slider-viewport {
-    width: 600px;
-    overflow: hidden;
-}
-
-div.slider-viewport div.slideable-wrapper {
-    width: 1000em;
-}
-
-div.slider-viewport div.slideable-wrapper div.slideable {
-    float: left;
-    width: 200px;
-    height: 200px;
-}
+div.slider {
+  position: relative;
+  width: 800px;
+  height: 200px;
+  overflow: hidden; }
+  div.slider ul {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    list-style: none; }
+    div.slider ul li {
+      float: left; }
+      div.slider ul li a img {
+        display: block; }

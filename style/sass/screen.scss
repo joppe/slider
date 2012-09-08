@@ -1,0 +1,23 @@
+div.slider {
+    position: relative;
+    width: 800px;
+    height: 200px;
+    overflow: hidden;
+
+    ul {
+        position: absolute;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            float: left;
+
+            a {
+                img {
+                    display: block;
+                }
+            }
+        }
+    }
+}
