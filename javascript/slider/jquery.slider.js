@@ -1,257 +1,164 @@
 /*global jQuery*/
 
+/**
+ * @author Joppe Aarts <joppe@apestaartje.info>
+ */
+
 (function ($) {
     'use strict';
 
     var Slider,
-        Viewport,
-        Element,
-        Elements,
         default_options = {
             horizontal: true,
-            loop: true,
-            container: 'ul',
-            element: 'li'
-        };
+            loop: false,
+            slider: 'ul',
+            element: 'li',
+            justifyElements: true,
+            animation: function (status) {
+                var $newActiveSlide = $(status.getElementByIndex(status.newActiveIndex)),
+                    position = $newActiveSlide.position();
 
-    Viewport = (function () {
-        var Viewport;
+                status.$slider.css({
+                    top: -position.top,
+                    left: -position.left
+                });
 
-        Viewport = function ($element) {
-            this.$element = $element;
-        };
-        Viewport.prototype = {
-            width: null,
-            height: null,
-            getElement: function () {
-                return this.$element;
-            },
-
-            getWidth: function () {
-                if (this.width === null) {
-                    this.width = this.$element.width();
-                }
-                return this.width;
-            },
-
-            getHeight: function () {
-                if (this.height === null) {
-                    this.height = this.$element.height();
-                }
-                return this.height;
+                status.$viewport.trigger('sliderAnimationFinished');
             }
         };
 
-        return Viewport;
-    }());
+    /**
+     * Create a slider status object
+     *
+     * @param {Slider} slider
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createStatus(slider, options) {
+        return {
+            $slider: slider.$slider,
+            $viewport: slider.$viewport,
+            elementCount: slider.$elements.length,
+            newActiveIndex: null,
+            activeIndex: null,
+            options: options,
+            getElementByIndex: function (index) {
+                var $element = null;
 
-    Element = (function () {
-        var Element;
-
-        Element = function ($element, index) {
-            this.$element = $element;
-            this.index = index;
-        };
-        Element.prototype = {
-            width: null,
-
-            height: null,
-
-            position: null,
-
-            getElement: function () {
-                return this.$element;
-            },
-
-            getPosition: function () {
-                if (this.position === null) {
-                    this.position = this.$element.position();
+                if (typeof slider.$elements[index] !== 'undefined') {
+                    $element = slider.$elements[index];
                 }
-                return this.position;
-            },
-
-            getWidth: function () {
-                if (this.width === null) {
-                    this.width = this.$element.width();
-                }
-                return this.width;
-            },
-
-            getHeight: function () {
-                if (this.height === null) {
-                    this.height = this.$element.height();
-                }
-                return this.height;
-            }
-        };
-
-        return Element;
-    }());
-
-    Elements = (function () {
-        var Elements;
-
-        Elements = function ($root, container_selector, element_selector, horizontal) {
-            console.log('Elements.constructor');
-            this.elements = this.createElements($root, element_selector, horizontal);
-            this.$container = this.createContainer($root, container_selector);
-
-            this.count = this.elements.length;
-        };
-        Elements.prototype = {
-            width: 0,
-
-            height: 0,
-
-            createContainer: function ($root, container_selector) {
-                var $element = $root.find(container_selector);
-
-                $element.width(this.width);
-                $element.height(this.height);
 
                 return $element;
-            },
+            }
+        };
+    }
 
-            createElements: function ($root, element_selector, horizontal) {
-                var self = this,
-                    elements = [];
+    /**
+     * Constructor
+     *
+     * @constructor
+     * @param {jQuery} $viewport
+     * @param {Object} options
+     */
+    Slider = function ($viewport, options) {
+        this.$viewport = $viewport;
+        this.animation = options.animation;
 
-                $root.find(element_selector).each(function (index) {
-                    var $element = $(this),
-                        element = new Element($element, index);
+        this.$slider = this.$viewport.find(options.slider);
+        this.$elements = this.$viewport.find(options.element);
+        this.status = createStatus(this, options);
 
-                    elements.push(element);
+        this.prepareContainer(options);
+        this.addEventListeners();
+    };
+    Slider.prototype = {
+        /**
+         * Prepare the dimesnions of the container so it wraps all elements
+         *
+         * @param {Object} options
+         */
+        prepareContainer: function (options) {
+            var width = 0;
 
-                    if (horizontal) {
-                        self.width += element.getWidth();
-                        self.height = Math.max(self.height, element.getHeight());
-                    } else {
-                        self.width = Math.max(self.width, element.getWidth());
-                        self.height += element.getHeight();
-                    }
+            if (options.horizontal) {
+                this.$elements.each(function () {
+                    width += $(this).width();
                 });
 
-                return elements;
-            },
-
-            getCount: function () {
-                return this.count;
-            }
-        };
-
-        return Elements;
-    }());
-
-    Slider = (function () {
-        var Slider;
-
-        Slider = function ($viewport, options) {
-            console.log('Slider.constructor');
-            this.viewport = new Viewport($viewport);
-            this.elements = new Elements($viewport, options.container, options.element,  options.horizontal);
-
-            if (this.elements.getCount() > 0) {
-                this.active = 0;
-            }
-        };
-        Slider.prototype = {
-            active: null,
-
-            addEventListeners: function () {
-                this.viewport.getElement().on({
-                    next: function (event) {
-
-                    },
-                    previous: function (event) {
-
-                    }
+                this.$slider.css({
+                    width: width
                 });
             }
-        };
+        },
 
-        return Slider;
-    }());
+        /**
+         * Add (custom) event listeners to the container
+         */
+        addEventListeners: function () {
+            var self = this;
+
+            this.$viewport.on({
+                sliderReset: function () {
+                    self.moveTo(0);
+                },
+                sliderNext: function () {
+                    self.moveTo(self.status.activeIndex + 1);
+                },
+                sliderMoveTo: function (event, index) {
+                    self.moveTo(index);
+                },
+                sliderPrevious: function () {
+                    self.moveTo(self.status.activeIndex - 1);
+                },
+                sliderAnimationFinished: function () {
+                    self.status.activeIndex = self.status.newActiveIndex;
+                    self.status.newActiveIndex = null;
+                    self.$slider.trigger('sliderAfterChange', self.status);
+                }
+            });
+        },
+
+        /**
+         * Move the slider to the specified index of an element
+         *
+         * @param {Number} index
+         */
+        moveTo: function (index) {
+            var self = this,
+                elementPosition;
+
+            if (this.status.loop) {
+                if (index < 0) {
+                    index = this.$elements.length - 1;
+                }
+
+                if (index >= this.$elements.length) {
+                    index = 0;
+                }
+            } else if (this.status.options.justifyElements && index >= 0 && index < this.$elements.length) {
+                elementPosition = $(this.$elements.get(index)).position();
+
+                if (this.status.options.horizontal && -elementPosition.left < (this.$viewport.width() - this.$slider.width())) {
+                    index = -1;
+                } else if (!this.status.options.horizontal && -elementPosition.top < (this.$viewport.height() - this.$slider.height())) {
+                    index = -1;
+                }
+            }
+
+            if (index >= 0 && index < this.$elements.length) {
+                this.status.newActiveIndex = index;
+                this.$viewport.trigger('sliderBeforeChange', self.status);
+                this.animation(this.status);
+            }
+        }
+    };
 
     $.fn.slider = function (config) {
-        var options = {};
-
-        if (typeof config === 'undefined') {
-            config = {};
-        }
-        $.extend(options, default_options, config);
+        var options = $.extend(default_options, typeof config === 'undefined' ? {} : config);
 
         return this.each(function () {
             var slider = new Slider($(this), options);
-        });
-    };
-}(jQuery));
-
-// controls
-(function ($) {
-    'use strict';
-
-    var Controls,
-        default_options = {
-            next: '.next',
-            previous: '.previous'
-        };
-
-    Controls = (function () {
-        var Controls;
-
-        Controls = function ($container, $slider, options) {
-            console.log('Controls.constructor');
-            this.$container = $container;
-            this.$slider = $slider;
-
-            this.$next = $container.find(options.next);
-            this.$previous = $container.find(options.previous);
-
-            this.addTriggers();
-            this.addEventListeners();
-        };
-        Controls.prototype = {
-            addTriggers: function () {
-                var self = this;
-
-                this.$next.on({
-                    click: function (event) {
-                        event.preventDefault();
-
-                        self.$slider.trigger('next');
-                    }
-                });
-                this.$previous.on({
-                    click: function (event) {
-                        event.preventDefault();
-
-                        self.$slider.trigger('previous');
-                    }
-                });
-            },
-
-            addEventListeners: function () {
-                this.$slider.on({
-                    change: function (event, slider) {
-                        console.log(slider);
-                    }
-                });
-            }
-        };
-
-        return Controls;
-    }());
-
-    $.fn.sliderControls = function ($slider, config) {
-        var options = {};
-
-        if (typeof config === 'undefined') {
-            config = {};
-        }
-        $.extend(options, default_options, config);
-
-        return this.each(function () {
-            var controls = new Controls($(this), $slider, options);
         });
     };
 }(jQuery));

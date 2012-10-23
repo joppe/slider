@@ -5,7 +5,8 @@
         <link type="text/css" rel="stylesheet" href="style/screen.css">
         <script type="text/javascript" src="javascript/3th-party/jquery-1.8.1.min.js"></script>
         <script type="text/javascript" src="javascript/slider/jquery.slider.js"></script>
-        <script type="text/javascript" src="javascript/slider/jquery.slider.js"></script>
+        <script type="text/javascript" src="javascript/slider/jquery.slider-controls.js"></script>
+        <script type="text/javascript" src="javascript/slider/jquery.slider-animation.js"></script>
         <script type="text/javascript" src="javascript/global.js"></script>
     </head>
 
@@ -26,11 +27,11 @@
             </ul>
         </div>
         <ul class="slider-nav">
-            <li>
-                <a href="#" class="previous">previous</a>
+            <li class="previous">
+                <a href="#">previous</a>
             </li>
-            <li>
-                <a href="#" class="next">next</a>
+            <li class="next">
+                <a href="#">next</a>
             </li>
         </ul>
     </body>

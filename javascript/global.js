@@ -4,6 +4,12 @@ jQuery(function ($) {
     'use strict';
 
     // create the slider
-    $('div.slider').slider();
-    $('ul.slider-nav').sliderControls($('div.slider'));
+    $('div.slider').each(function () {
+        var $slider = $(this);
+
+        $slider.slider({
+            animation: $.createSliderAnimation()
+        });
+        $('ul.slider-nav').sliderControls($slider);
+    });
 });
