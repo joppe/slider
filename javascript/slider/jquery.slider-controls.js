@@ -138,7 +138,7 @@
     }());
 
     $.fn.sliderControls = function ($slider, config) {
-        var options = $.extend(default_options, typeof config === 'undefined' ? {} : config);
+        var options = $.extend(default_options, config === undefined ? {} : config);
 
         return this.each(function () {
             var controls = new Controls($(this), $slider, options);

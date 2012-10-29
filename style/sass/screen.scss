@@ -1,3 +1,11 @@
+body {
+    background: #ffffff;
+    color: #222222;
+    font-family: Arial;
+    font-size: 12px;
+    line-height: 17px;
+}
+
 div.slider {
     position: relative;
     width: 800px;
@@ -17,6 +25,33 @@ div.slider {
                 img {
                     display: block;
                 }
+            }
+        }
+    }
+}
+
+ul.slider-nav {
+    margin: 0;
+    padding: 20px 0 0 0;
+    width: 800px;
+    overflow: hidden;
+    list-style-type: none;
+
+    li {
+        &.previous {
+            float: left;
+        }
+        &.next {
+            float: right;
+        }
+
+        a {
+            font-weight: bold;
+            text-decoration: none;
+            color: green;
+
+            &.disabled {
+                color: gray;
             }
         }
     }

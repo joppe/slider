@@ -13,7 +13,7 @@
         };
 
     $.createSliderAnimation = function (config) {
-        var options = $.extend(default_options, typeof config === 'undefined' ? {} : config);
+        var options = $.extend(default_options, config === undefined ? {} : config);
 
         return function (status) {
             var $newActiveSlide = $(status.getElementByIndex(status.newActiveIndex)),
@@ -21,8 +21,7 @@
                 top = -position.top,
                 left = -position.left;
 
-            // status.$slider.is(':animated')
-            status.$slider.stop(true, false);
+            status.$slider.stop();
 
             status.$slider.animate({
                 top: top,
