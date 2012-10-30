@@ -114,7 +114,7 @@
                     this.$previous.trigger('slideControlEnable');
                 }
 
-                if (sliderStatus.activeIndex >= sliderStatus.elementCount) {
+                if (sliderStatus.activeIndex >= sliderStatus.elementCount - 1) {
                     this.$next.addClass('disabled');
                     this.$next.trigger('slideControlDisable');
                 } else {

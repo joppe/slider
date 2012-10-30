@@ -13,7 +13,6 @@
             loopMode: 'none', // none|circular|auto-reverse
             slider: 'ul',
             element: 'li',
-            justifyElements: true,
             animation: function (status) {
                 var $newActiveSlide = $(status.getElementByIndex(status.newActiveIndex)),
                     position = $newActiveSlide.position();
@@ -31,18 +30,16 @@
      * Create a slider status object
      *
      * @param {Slider} slider
-     * @param {Number} maxIndex
      * @param {Object} options
      * @return {Object}
      */
-    function createStatus(slider, maxIndex, options) {
+    function createStatus(slider, options) {
         return {
             $slider: slider.$slider,
             $viewport: slider.$viewport,
             elementCount: slider.$elements.length,
             newActiveIndex: null,
             activeIndex: null,
-            maxIndex: maxIndex,
             options: options,
             getElementByIndex: function (index) {
                 var element = null;
@@ -69,11 +66,9 @@
 
         this.$slider = this.$viewport.find(options.slider);
         this.$elements = this.$viewport.find(options.element);
+        this.status = createStatus(this, options);
 
         this.prepareContainer(options);
-
-        this.status = createStatus(this, this.getMaxIndex(options), options);
-
         this.addEventListeners();
     };
     Slider.prototype = {
@@ -94,40 +89,6 @@
                     width: width
                 });
             }
-        },
-
-        getMaxIndex: function (options) {
-            var maxIndex = this.$elements.length - 1,
-                left,
-                maxLeft,
-                top,
-                maxTop;
-
-            if (options.justifyElements && options.horizontal) {
-                left = this.$slider.width();
-                maxLeft = left - this.$viewport.width();
-
-                while (left > 0 && maxIndex >= 0 && left > maxLeft) {
-                    left -= $(this.$elements.get(maxIndex)).width();
-
-                    if (left > maxLeft) {
-                        maxIndex -= 1;
-                    }
-                }
-            } else if (options.justifyElements && !options.horizontal) {
-                top = this.$slider.height();
-                maxTop = top - this.$viewport.height();
-
-                while (top > 0 && maxIndex >= 0 && top > maxTop) {
-                    top -= $(this.$elements.get(maxIndex)).height();
-
-                    if (top > maxTop) {
-                        maxIndex -= 1;
-                    }
-                }
-            }
-
-            return maxIndex;
         },
 
         /**
@@ -185,8 +146,6 @@
                 if (index >= this.$elements.length) {
                     index = 0;
                 }
-            } else if (this.status.options.justifyElements && index > this.status.maxIndex) {
-                index = -1;
             }
 
             if (index >= 0 && index < this.$elements.length) {
