@@ -37,7 +37,7 @@
         return {
             $slider: slider.$slider,
             $viewport: slider.$viewport,
-            elementCount: slider.$elements.length,
+            elementCount: slider.$elements.not('.ghost').length,
             newActiveIndex: null,
             activeIndex: null,
             options: options,
@@ -65,26 +65,35 @@
         this.animation = options.animation;
 
         this.$slider = this.$viewport.find(options.slider);
+
+        this.prepareContainer(options);
+
         this.$elements = this.$viewport.find(options.element);
         this.status = createStatus(this, options);
 
-        this.prepareContainer(options);
         this.addEventListeners();
     };
     Slider.prototype = {
-        /**
-         * Prepare the dimensions of the container so it wraps all elements
-         *
-         * @param {Object} options
-         */
         prepareContainer: function (options) {
-            var width = 0;
+            var self = this,
+                width = 0;
 
-            if (options.horizontal) {
-                this.$elements.each(function () {
-                    width += $(this).width();
-                });
+            this.$viewport.find(options.element).each(function () {
+                var $element = $(this);
 
+                // create a ghost
+                if (options.loopMode === 'circular') {
+                    $element.clone().addClass('ghost').appendTo(self.$slider);
+                }
+                if (options.horizontal) {
+                    width += $element.width();
+                }
+            });
+
+            if (width > 0) {
+                if (options.loopMode === 'circular') {
+                    width *= 2; // for the ghosts
+                }
                 this.$slider.css({
                     width: width
                 });
@@ -140,15 +149,15 @@
 
             if (this.status.options.loopMode !== 'none') {
                 if (index < 0) {
-                    index = this.$elements.length - 1;
+                    index = this.status.elementCount - 1;
                 }
 
-                if (index >= this.$elements.length) {
+                if (index >= this.status.elementCount) {
                     index = 0;
                 }
             }
 
-            if (index >= 0 && index < this.$elements.length) {
+            if (index >= 0 && index < this.status.elementCount) {
                 this.status.newActiveIndex = index;
                 this.$viewport.trigger('sliderBeforeChange', self.status);
                 this.animation(this.status);

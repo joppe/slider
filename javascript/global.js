@@ -8,6 +8,7 @@ jQuery(function ($) {
         var $slider = $(this);
 
         $slider.slider({
+            loopMode: 'circular',
             animation: $.createSliderAnimation()
         });
         $('ul.slider-nav').sliderControls($slider);

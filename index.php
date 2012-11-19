@@ -14,7 +14,7 @@
         <div class="slider">
             <ul>
                 <?php
-                    foreach (range(1, 10) as $index) {
+                    foreach (range(1, 4) as $index) {
                 ?>
                     <li>
                         <a href="#">
