@@ -14,8 +14,7 @@
             slider: 'ul',
             element: 'li',
             animation: function (status) {
-                var $newActiveSlide = $(status.getElementByIndex(status.newActiveIndex)),
-                    position = $newActiveSlide.position();
+                var position = status.$target.position();
 
                 status.$slider.css({
                     top: -position.top,
@@ -37,20 +36,19 @@
         return {
             $slider: slider.$slider,
             $viewport: slider.$viewport,
-            elementCount: slider.$elements.not('.ghost').length,
-            newActiveIndex: null,
-            activeIndex: null,
-            activePage: null,
-            newActivePage: null,
             options: options,
-            getElementByIndex: function (index) {
-                var element = null;
+            activePage: 0,
+            newActivePage: null,
+            pageCount: slider.pages.length,
+            $target: null,
+            getElementByPage: function (page) {
+                var $element = null;
 
-                if (slider.$elements[index] !== undefined) {
-                    element = slider.$elements[index];
+                if (slider.pages[page] !== undefined) {
+                    $element = slider.pages[page];
                 }
 
-                return element;
+                return $element;
             }
         };
     }
@@ -67,7 +65,7 @@
         this.animation = options.animation;
 
         this.$slider = this.$viewport.find(options.slider);
-        this.elements = this.$viewport.find(options.element).toArray();
+        this.elements = this.getElements(options);
 
         this.pages = this.createPages(options);
 
@@ -79,9 +77,19 @@
 
         this.status = createStatus(this, options);
 
-//        this.addEventListeners();
+        this.addEventListeners();
     };
     Slider.prototype = {
+        getElements: function (options) {
+            var elements = [];
+
+            this.$viewport.find(options.element).each(function () {
+                elements.push($(this));
+            });
+
+            return elements;
+        },
+
         createPages: function (options) {
             var pages = [],
                 viewportSize = options.horizontal ? this.$viewport.width() : this.$viewport.height(),
@@ -89,9 +97,8 @@
                 totalSize = 0,
                 $pageElement = null;
 
-            $.each(this.elements, function (index, element) {
-                var $element = $(element),
-                    size = options.horizontal ? $element.width() : $element.height();
+            $.each(this.elements, function (index, $element) {
+                var size = options.horizontal ? $element.width() : $element.height();
 
                 if ($pageElement === null) {
                     $pageElement = $element;
@@ -122,13 +129,13 @@
         },
 
         createClones: function (options) {
-            var $first = $(this.elements[0]),
-                $last = $(this.elements[this.elements.length - 1]),
+            var $first = this.elements[0],
+                $last = this.elements[this.elements.length - 1],
                 firstSize = options.horizontal ? $first.width() : $first.height(),
                 lastSize = options.horizontal ? $last.width() : $last.height();
-
-            this.elements.push($first.clone().addClass('ghost').appendTo(this.$slider).get(0));
-            this.elements.unshift($last.clone().addClass('ghost').prependTo(this.$slider).get(0));
+            // TODO make enough copies so that the viewportsize is covered
+            this.elements.push($first.clone().addClass('ghost').appendTo(this.$slider));
+            this.elements.unshift($last.clone().addClass('ghost').prependTo(this.$slider));
 
             if (options.horizontal) {
                 this.$slider.css({
@@ -150,10 +157,13 @@
             var self = this;
 
             this.$viewport.on({
-                sliderReset: function () {
+                sliderReset: function (event) {
+                    event.stopPropagation();
+
 //                    self.moveTo(0);
                 },
-                sliderNext: function () {
+                sliderNext: function (event) {
+                    event.stopPropagation();
 //                    var moveToIndex = self.status.activeIndex + 1;
 //
 //                    if (self.status.newActiveIndex !== null) {
@@ -163,21 +173,43 @@
 //                    self.moveTo(moveToIndex);
                 },
                 sliderMoveTo: function (event, index) {
+                    event.stopPropagation();
 //                    self.moveTo(index);
                 },
-                sliderPrevious: function () {
-//                    var moveToIndex = self.status.activeIndex - 1;
-//
+                sliderPrevious: function (event) {
+                    var moveToPage = self.status.activePage - 1;
+
+                    event.stopPropagation();
+
 //                    if (self.status.newActiveIndex !== null) {
 //                        moveToIndex = self.status.newActiveIndex - 1;
 //                    }
-//
-//                    self.moveTo(moveToIndex);
+
+                    self.moveTo(moveToPage);
                 },
-                sliderAnimationFinished: function () {
-//                    self.status.activeIndex = self.status.newActiveIndex;
-//                    self.status.newActiveIndex = null;
-//                    self.$slider.trigger('sliderAfterChange', self.status);
+                sliderAnimationFinished: function (event) {
+                    event.stopPropagation();
+
+                    var position;
+
+                    self.status.activePage = self.status.newActivePage;
+                    self.status.newActivePage = null;
+
+                    // correct the position
+                    if (self.status.options.loopMode === 'circular') {
+                        console.log(self.status.activePage);
+                        if (self.status.options.horizontal) {
+                            self.$slider.css({
+                                left: -self.pages[self.status.activePage].position().left
+                            });
+                        } else {
+                            self.$slider.css({
+                                top: -self.pages[self.status.activePage].position().top
+                            });
+                        }
+                    }
+
+                    self.$slider.trigger('sliderAfterChange', self.status);
                 }
             });
         },
@@ -185,26 +217,27 @@
         /**
          * Move the slider to the specified index of an element
          *
-         * @param {Number} index
+         * @param {Number} page
          */
-        moveTo: function (index) {
-//            var self = this;
-//
-//            if (this.status.options.loopMode !== 'none') {
-//                if (index < 0) {
-//                    index = this.status.elementCount - 1;
-//                }
-//
-//                if (index >= this.status.elementCount) {
-//                    index = 0;
-//                }
-//            }
-//
-//            if (index >= 0 && index < this.status.elementCount) {
-//                this.status.newActiveIndex = index;
-//                this.$viewport.trigger('sliderBeforeChange', self.status);
-//                this.animation(this.status);
-//            }
+        moveTo: function (page) {
+            console.log('moveTo: ' + page);
+            var block = false;
+
+            if (this.status.options.loopMode === 'circular') {
+                if (page < 0) {
+                    page = this.status.pageCount - 1;
+                    this.status.$target = this.elements[0];
+                } else if (page >= this.status.pageCount) {
+                    page = 0;
+                    this.status.$target = this.elements[this.elements.length - 1];
+                }
+            }
+
+            if (block === false) {
+                this.status.newActivePage = page;
+                this.$viewport.trigger('sliderBeforeChange', this.status);
+                this.animation(this.status);
+            }
         }
     };
 
