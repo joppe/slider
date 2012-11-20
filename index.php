@@ -14,10 +14,11 @@
         <div class="slider">
             <ul>
                 <?php
-                    foreach (range(1, 4) as $index) {
+                    foreach (range(1, 6) as $index) {
                 ?>
                     <li>
                         <a href="#">
+                            <span><?php echo $index; ?></span>
                             <img src="http://lorempixel.com/200/200/sports/<?php echo $index; ?>" width="200" height="200">
                         </a>
                     </li>

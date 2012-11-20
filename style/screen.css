@@ -17,8 +17,23 @@ div.slider {
     list-style: none; }
     div.slider ul li {
       float: left; }
-      div.slider ul li a img {
+      div.slider ul li a {
+        position: relative;
         display: block; }
+        div.slider ul li a span {
+          position: absolute;
+          left: 25%;
+          top: 25%;
+          width: 50%;
+          height: 50%;
+          background: rgba(255, 255, 255, 0.5);
+          text-align: center;
+          font-size: 30px;
+          font-weight: bold;
+          text-decoration: none;
+          line-height: 50px; }
+        div.slider ul li a img {
+          display: block; }
 
 ul.slider-nav {
   margin: 0;
