@@ -11,7 +11,7 @@
         default_options = {
             next: 'li.next a',
             previous: 'li.previous a',
-            number: 'li.number a'
+            number: null
         };
 
     Controls = (function () {
@@ -23,114 +23,73 @@
 
             this.$next = this.$container.find(options.next);
             this.$previous = this.$container.find(options.previous);
+            this.$numbers = this.$container.find(options.number);
 
-            this.numbers = this.getNumbers(options);
-
-            this.addTriggers();
             this.addEventListeners();
         };
         Controls.prototype = {
-            getNumbers: function (options) {
-                var $numbers = this.$container.find(options.number),
-                    numbers = {};
+            /**
+             * @property {jQuery} $container
+             */
+            $container: null,
 
-                $numbers.each(function (index) {
-                    var $number = $(this),
-                        slideIndex = $number.data('slide-index');
+            /**
+             * @property {jQuery} $slider
+             */
+            $slider: null,
 
-                    if (typeof slideIndex === 'number') {
-                        index = slideIndex;
-                    }
+            /**
+             * @property {jQuery} $next
+             */
+            $next: null,
 
-                    numbers['number-' + index] = $number;
-                });
+            /**
+             * @property {jQuery} $previous
+             */
+            $previous: null,
 
-                return numbers;
-            },
+            /**
+             * @property {jQuery} $numbers
+             */
+            $numbers: null,
 
-            addTriggers: function () {
+            addEventListeners: function () {
                 var self = this;
 
                 this.$next.on({
                     click: function (event) {
                         event.preventDefault();
 
-                        self.$slider.trigger('sliderNext');
+                        self.$slider.trigger('sliderNext', 1);
                     }
                 });
                 this.$previous.on({
                     click: function (event) {
                         event.preventDefault();
 
-                        self.$slider.trigger('sliderPrevious');
+                        self.$slider.trigger('sliderPrevious', 1);
                     }
                 });
 
-                $.each(this.numbers, function (slideIndex, $number) {
-                    $number.on({
-                        click: function (event) {
-                            var index = parseInt(slideIndex.replace('number-', ''), 10);
+                this.$numbers.on({
+                    click: function (event) {
+                        var index = self.$numbers.index($(this));
 
-                            event.preventDefault();
+                        event.preventDefault();
 
-                            self.$slider.trigger('sliderMoveTo', index);
-                        }
-                    });
+                        self.$slider.trigger('sliderMoveTo', index);
+                    }
                 });
-            },
-
-            updateControls: function (sliderStatus) {
-                var $activeAnchor,
-                    $oldActiveAnchor;
-
-                if (this.numbers['number-' + sliderStatus.activeIndex]) {
-                    $activeAnchor = this.numbers['number-' + sliderStatus.activeIndex];
-
-                    if (!$activeAnchor.hasClass('active')) {
-                        $oldActiveAnchor = this.$container.find('.active');
-
-                        if ($oldActiveAnchor.length > 0) {
-                            $oldActiveAnchor.removeClass('active');
-                            $oldActiveAnchor.trigger('slideControlSetInActive');
-                        }
-                    }
-
-                    $activeAnchor.addClass('active');
-                    $activeAnchor.trigger('slideControlSetActive');
-                } else {
-                    $oldActiveAnchor = this.$container.find('.active');
-
-                    if ($oldActiveAnchor.length > 0) {
-                        $oldActiveAnchor.removeClass('active');
-                        $oldActiveAnchor.trigger('slideControlSetInActive');
-                    }
-                }
-
-                if (sliderStatus.activeIndex === 0) {
-                    this.$previous.addClass('disabled');
-                    this.$previous.trigger('slideControlDisable');
-                } else {
-                    this.$previous.removeClass('disabled');
-                    this.$previous.trigger('slideControlEnable');
-                }
-
-                if (sliderStatus.activeIndex >= sliderStatus.elementCount - 1) {
-                    this.$next.addClass('disabled');
-                    this.$next.trigger('slideControlDisable');
-                } else {
-                    this.$next.removeClass('disabled');
-                    this.$next.trigger('slideControlEnable');
-                }
-            },
-
-            addEventListeners: function () {
-                var self = this;
 
                 this.$slider.on({
                     sliderAfterChange: function (event, sliderStatus) {
                         self.updateControls(sliderStatus);
                     }
                 });
+            },
+
+            updateControls: function () {
+
             }
         };
 

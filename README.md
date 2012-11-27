@@ -5,3 +5,6 @@ thin slider plugin that is extensible by making use of custom events.
 ## What still needs to be done
 Circular/auto-reverse
 Paging
+
+## Notes
+The index keeps incrementing till the animation is finished.

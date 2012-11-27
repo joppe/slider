@@ -14,7 +14,7 @@
             slider: 'ul',
             element: 'li',
             animation: function (status) {
-                var position = status.$target.position();
+                var position = status.element.getByIndex(status.newActiveIndex).position();
 
                 status.$slider.css({
                     top: -position.top,
@@ -26,34 +26,6 @@
         };
 
     /**
-     * Create a slider status object
-     *
-     * @param {Slider} slider
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createStatus(slider, options) {
-        return {
-            $slider: slider.$slider,
-            $viewport: slider.$viewport,
-            options: options,
-            activePage: 0,
-            newActivePage: null,
-            pageCount: slider.pages.length,
-            $target: null,
-            getElementByPage: function (page) {
-                var $element = null;
-
-                if (slider.pages[page] !== undefined) {
-                    $element = slider.pages[page];
-                }
-
-                return $element;
-            }
-        };
-    }
-
-    /**
      * Constructor
      *
      * @constructor
@@ -62,92 +34,98 @@
      */
     Slider = function ($viewport, options) {
         this.$viewport = $viewport;
-        this.animation = options.animation;
+        this.options = options;
 
-        this.$slider = this.$viewport.find(options.slider);
-        this.elements = this.getElements(options);
+        this.$slider = this.$viewport.find(this.options.slider);
+        this.status = this.createStatus(this);
+        this.elements = this.getElements();
 
-        this.pages = this.createPages(options);
-
-        if (options.loopMode === 'circular') {
-            this.createClones(options);
+        if (this.options.loopMode !== 'none') {
+            this.createClones();
         }
-
-        // TODO prepare container? check for active class? or trigger an event to do this?
-
-        this.status = createStatus(this, options);
 
         this.addEventListeners();
     };
     Slider.prototype = {
-        getElements: function (options) {
-            var elements = [];
+        /**
+         * @property {jQuery} $viewport
+         */
+        $viewport: null,
 
-            this.$viewport.find(options.element).each(function () {
-                elements.push($(this));
+        /**
+         * @property {Object} $viewport
+         */
+        options: null,
+
+        /**
+         * @property {jQuery} $viewport
+         */
+        $slider: null,
+
+        createStatus: function (slider) {
+            return {
+                $slider: slider.$slider,
+                $viewport: slider.$viewport,
+                original: {
+                    size: 0,
+                    count: 0
+                },
+                element: {
+                    size: 0,
+                    count: 0,
+                    getByIndex: function (index) {
+                        return slider.elements[index];
+                    }
+                },
+                activeIndex: null,
+                newActiveIndex: null
+            };
+        },
+
+        getElements: function () {
+            var self = this,
+                elements = [];
+
+            this.$viewport.find(this.options.element).each(function () {
+                var $element = $(this);
+
+                self.status.original.size += self.options.horizontal ? $element.outerWidth() : $element.outerHeight();
+
+                elements.push($element);
             });
+
+            this.status.original.count = elements.length;
+
+            this.status.element.count = this.status.original.count;
+            this.status.element.size = this.status.original.size;
+
+            this.$slider.css(this.options.horizontal ? 'width' : 'height', this.size);
 
             return elements;
         },
 
-        createPages: function (options) {
-            var pages = [],
-                viewportSize = options.horizontal ? this.$viewport.width() : this.$viewport.height(),
-                pageSize = 0,
-                totalSize = 0,
-                $pageElement = null;
+        createClones: function () {
+            var self = this,
+                $parent = this.elements[0].parent(),
+                viewportSize = this.options.horizontal ? this.$viewport.width() : this.$viewport.height(),
+                size = 0;
 
             $.each(this.elements, function (index, $element) {
-                var size = options.horizontal ? $element.width() : $element.height();
+                var $clone = $element.clone().addClass('clone').appendTo($parent);
 
-                if ($pageElement === null) {
-                    $pageElement = $element;
-                }
+                size += self.options.horizontal ? $clone.outerWidth() : $clone.outerHeight();
 
-                totalSize += size;
-                pageSize += size;
-                if (pageSize > viewportSize) {
-                    pages.push($pageElement);
-                    pageSize = size;
-                    $pageElement = $element;
+                self.elements.push($clone);
+
+                if (size >= viewportSize) {
+                    return false;
                 }
             });
 
-            pages.push($pageElement);
+            this.status.element.count = this.elements.length;
+            this.status.element.size += size;
 
-            if (options.horizontal) {
-                this.$slider.css({
-                    width: totalSize
-                });
-            } else {
-                this.$slider.css({
-                    height: totalSize
-                });
-            }
-
-            return pages;
-        },
-
-        createClones: function (options) {
-            var $first = this.elements[0],
-                $last = this.elements[this.elements.length - 1],
-                firstSize = options.horizontal ? $first.width() : $first.height(),
-                lastSize = options.horizontal ? $last.width() : $last.height();
-            // TODO make enough copies so that the viewportsize is covered
-            this.elements.push($first.clone().addClass('ghost').appendTo(this.$slider));
-            this.elements.unshift($last.clone().addClass('ghost').prependTo(this.$slider));
-
-            if (options.horizontal) {
-                this.$slider.css({
-                    left: -firstSize,
-                    width: this.$slider.width() + firstSize + lastSize
-                });
-            } else {
-                this.$slider.css({
-                    top: -firstSize,
-                    height: this.$slider.height() + firstSize + lastSize
-                });
-            }
+            this.$slider.css(this.options.horizontal ? 'width' : 'height', this.status.element.size);
         },
 
         /**
@@ -160,83 +138,51 @@
                 sliderReset: function (event) {
                     event.stopPropagation();
 
-//                    self.moveTo(0);
+                    self.moveTo(0);
                 },
-                sliderNext: function (event) {
+                sliderNext: function (event, delta) {
                     event.stopPropagation();
-//                    var moveToIndex = self.status.activeIndex + 1;
-//
-//                    if (self.status.newActiveIndex !== null) {
-//                        moveToIndex = self.status.newActiveIndex + 1;
-//                    }
-//
-//                    self.moveTo(moveToIndex);
+
+                    var moveToIndex = self.status.activeIndex + delta;
+
+                    if (self.status.newActiveIndex !== null) {
+                        moveToIndex = self.status.newActiveIndex + delta;
+                    }
+
+                    self.moveTo(moveToIndex);
                 },
                 sliderMoveTo: function (event, index) {
                     event.stopPropagation();
-//                    self.moveTo(index);
-                },
-                sliderPrevious: function (event) {
-                    var moveToPage = self.status.activePage - 1;
 
+                    self.moveTo(index);
+                },
+                sliderPrevious: function (event, delta) {
                     event.stopPropagation();
 
-//                    if (self.status.newActiveIndex !== null) {
-//                        moveToIndex = self.status.newActiveIndex - 1;
-//                    }
+                    var moveToIndex = self.status.activeIndex - delta;
 
-                    self.moveTo(moveToPage);
+                    if (self.status.newActiveIndex !== null) {
+                        moveToIndex = self.status.newActiveIndex - delta;
+                    }
+
+                    self.moveTo(moveToIndex);
                 },
                 sliderAnimationFinished: function (event) {
                     event.stopPropagation();
 
-                    var position;
-
-                    self.status.activePage = self.status.newActivePage;
-                    self.status.newActivePage = null;
-
-                    // correct the position
-                    if (self.status.options.loopMode === 'circular') {
-                        console.log(self.status.activePage);
-                        if (self.status.options.horizontal) {
-                            self.$slider.css({
-                                left: -self.pages[self.status.activePage].position().left
-                            });
-                        } else {
-                            self.$slider.css({
-                                top: -self.pages[self.status.activePage].position().top
-                            });
-                        }
-                    }
-
+                    self.status.activeIndex = self.status.newActiveIndex;
+                    self.status.newActiveIndex = null;
                     self.$slider.trigger('sliderAfterChange', self.status);
                 }
             });
         },
 
-        /**
-         * Move the slider to the specified index of an element
-         *
-         * @param {Number} page
-         */
-        moveTo: function (page) {
-            console.log('moveTo: ' + page);
-            var block = false;
-
-            if (this.status.options.loopMode === 'circular') {
-                if (page < 0) {
-                    page = this.status.pageCount - 1;
-                    this.status.$target = this.elements[0];
-                } else if (page >= this.status.pageCount) {
-                    page = 0;
-                    this.status.$target = this.elements[this.elements.length - 1];
-                }
-            }
-
-            if (block === false) {
-                this.status.newActivePage = page;
+        moveTo: function (index) {
+            console.log(index);
+            if (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count) {
+                this.status.newActiveIndex = index;
                 this.$viewport.trigger('sliderBeforeChange', this.status);
-                this.animation(this.status);
+                this.options.animation(this.status);
             }
         }
     };
