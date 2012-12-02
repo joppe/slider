@@ -33,18 +33,22 @@
      * @return {Object}
      */
     function createStatus(slider, options) {
+        var size = slider.getSize(),
+            count = slider.elements.length;
+
         return {
             $slider: slider.$slider,
             $viewport: slider.$viewport,
             options: options,
             original: {
-                size: null,
-                count: null
+                size: size,
+                count: count
             },
             element: {
                 activeIndex: null,
                 newActiveIndex: null,
-                count: null,
+                size: size,
+                count: count,
                 getByIndex: function (index) {
                     return slider.elements[index].$element;
                 }
@@ -64,15 +68,14 @@
         this.options = options;
 
         this.$slider = this.$viewport.find(this.options.slider);
-        this.status = createStatus(this, options);
         this.elements = this.getElements();
-        this.status.original.count = this.elements.length;
-        this.status.element.count = this.status.original.count;
-        this.status.original.size = this.getSize();
-        this.status.element.size = this.status.original.size;
+
+        this.status = createStatus(this, options);
 
         if (this.options.loopMode !== 'none') {
-            this.createClones();
+            this.elements = this.elements.concat(this.createClones());
+            this.status.element.count = this.elements.length;
+            this.status.element.size = this.getSize();
         }
 
         this.$slider.css(this.options.horizontal ? 'width' : 'height', this.status.element.size);
@@ -88,20 +91,14 @@
                 elements = [];
 
             this.$viewport.find(this.options.element).each(function () {
-                var $element = $(this);
-
-                elements.push({
-                    $element: $element,
-                    size: self.options.horizontal ? $element.outerWidth() : $element.outerHeight(),
-                    position: self.options.horizontal ? $element.position().left : $element.position().top
-                });
+                elements.push(self.createElement($(this)));
             });
 
             return elements;
         },
 
         /**
-         * @return {Number}
+         * @return {number}
          */
         getSize: function () {
             var size = 0;
@@ -113,32 +110,42 @@
             return size;
         },
 
+        /**
+         * @param {jQuery} $element
+         * @return {Object}
+         */
+        createElement: function ($element) {
+            return {
+                $element: $element,
+                size: this.options.horizontal ? $element.outerWidth() : $element.outerHeight(),
+                position: this.options.horizontal ? $element.position().left : $element.position().top
+            };
+        },
+
+        /**
+         * @return {Array}
+         */
         createClones: function () {
             var self = this,
+                clones = [],
                 $parent = this.elements[0].$element.parent(),
                 viewportSize = this.options.horizontal ? this.$viewport.width() : this.$viewport.height(),
                 size = 0;
 
             $.each(this.elements, function (index, element) {
-                var $clone = element.$element.clone().addClass('clone').appendTo($parent);
+                var $clone = element.$element.clone().addClass('clone').appendTo($parent),
+                    clone = self.createElement($clone);
 
-                size += self.options.horizontal ? $clone.outerWidth() : $clone.outerHeight();
+                clones.push(clone);
 
-                self.elements.push({
-                    $element: $clone,
-                    size: self.options.horizontal ? $clone.outerWidth() : $clone.outerHeight(),
-                    position: self.options.horizontal ? $clone.position().left : $clone.position().top
-                });
+                size += clone.size;
 
                 if (size >= viewportSize) {
                     return false;
                 }
             });
 
-            this.status.element.count = this.elements.length;
-            this.status.element.size += size;
-
-            this.$slider.css(this.options.horizontal ? 'width' : 'height', this.status.element.size);
+            return clones;
         },
 
         /**
@@ -190,6 +197,9 @@
             });
         },
 
+        /**
+         * @param {number} index
+         */
         moveTo: function (index) {
             console.log(index);
             if (this.options.loopMode !== 'none' || (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count)) {
