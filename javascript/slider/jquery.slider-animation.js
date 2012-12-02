@@ -30,7 +30,7 @@
         return function (status) {
             var propertyName = status.options.horizontal ? 'left' : 'top',
                 propertyEndValue = 0,
-                index = status.element.newActiveIndex,
+                index = status.index.newActive,
                 sign = index  > 0 ? -1 : 1;
 
             if (index > 0) {

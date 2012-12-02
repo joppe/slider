@@ -45,13 +45,15 @@
                 count: count
             },
             element: {
-                activeIndex: null,
-                newActiveIndex: null,
                 size: size,
                 count: count,
                 getByIndex: function (index) {
                     return slider.elements[index].$element;
                 }
+            },
+            index: {
+                active: null,
+                newActive: null
             }
         };
     }
@@ -161,12 +163,12 @@
                     self.moveTo(0);
                 },
                 sliderForward: function (event, delta) {
-                    var moveToIndex = self.status.element.activeIndex + delta;
+                    var moveToIndex = self.status.index.active + delta;
 
                     event.stopPropagation();
 
-                    if (self.status.element.newActiveIndex !== null) {
-                        moveToIndex = self.status.element.newActiveIndex + delta;
+                    if (self.status.index.newActive !== null) {
+                        moveToIndex = self.status.index.newActive + delta;
                     }
 
                     self.moveTo(moveToIndex);
@@ -177,12 +179,12 @@
                     self.moveTo(index);
                 },
                 sliderReverse: function (event, delta) {
-                    var moveToIndex = self.status.element.activeIndex - delta;
+                    var moveToIndex = self.status.index.active - delta;
 
                     event.stopPropagation();
 
-                    if (self.status.element.newActiveIndex !== null) {
-                        moveToIndex = self.status.element.newActiveIndex - delta;
+                    if (self.status.index.newActive !== null) {
+                        moveToIndex = self.status.index.newActive - delta;
                     }
 
                     self.moveTo(moveToIndex);
@@ -190,8 +192,8 @@
                 sliderAnimationFinished: function (event) {
                     event.stopPropagation();
 
-                    self.status.element.activeIndex = self.status.element.newActiveIndex;
-                    self.status.element.newActiveIndex = null;
+                    self.status.index.active = self.status.index.newActive;
+                    self.status.index.newActive = null;
                     self.$slider.trigger('sliderAfterChange', self.status);
                 }
             });
@@ -203,7 +205,7 @@
         moveTo: function (index) {
             console.log(index);
             if (this.options.loopMode !== 'none' || (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count)) {
-                this.status.element.newActiveIndex = index;
+                this.status.index.newActive = index;
                 this.$viewport.trigger('sliderBeforeChange', this.status);
                 this.options.animation(this.status);
             }
