@@ -48,13 +48,14 @@
                 },
                 index: {
                     active: null,
-                    newActive: null
+                    newActive: null,
+                    max: null
                 },
                 getPositionForIndex: function (index) {
                     var element = status.element.getByIndex(status.normalizeIndex(index)),
                         position = Math.floor(Math.abs(index) / count) * size;
 
-                    if (index > 0) {
+                    if (index > 0 || options.loopMode !== 'circular') {
                         position += element.position();
                         position *= -1;
                     } else {
@@ -66,7 +67,7 @@
                 normalizeIndex: function (index) {
                     var nIndex = index % count;
 
-                    if (index <= 0) {
+                    if (index <= 0 && options.loopMode === 'circular') {
                         nIndex += count;
                     }
 
@@ -102,10 +103,12 @@
 
         this.status = createStatus(this, options);
 
-        if (this.options.loopMode !== 'none') {
+        if (this.options.loopMode === 'circular') {
             this.elements = this.elements.concat(this.createClones());
             this.status.element.count = this.elements.length;
             this.status.element.size = this.getSize();
+        } else {
+            this.status.index.max = this.getMaxIndex();
         }
 
         this.$slider.css(this.options.horizontal ? 'width' : 'height', this.status.element.size);
@@ -190,6 +193,20 @@
             return clones;
         },
 
+        getMaxIndex: function () {
+            var viewportSize = this.options.horizontal ? this.$viewport.width() : this.$viewport.height(),
+                index,
+                maxIndex = this.status.element.count - 1,
+                size = 0;
+
+            for (index = this.status.element.count - 1; index >= 0 && size < viewportSize; index -= 1) {
+                maxIndex = index;
+                size += this.elements[index].size;
+            }
+
+            return maxIndex;
+        },
+
         /**
          * Add (custom) event listeners to the container
          */
@@ -243,8 +260,15 @@
          * @param {number} index
          */
         moveTo: function (index) {
-            console.log(index);
-            if (this.options.loopMode !== 'none' || (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count)) {
+            if (this.options.loopMode !== 'none' || (this.options.loopMode === 'none' && index >= 0 && index <= this.status.index.max)) {
+                if (this.options.loopMode === 'auto-reverse') {
+                    if (index < 0) {
+                        index = this.status.index.max;
+                    } else if (index > this.status.index.max) {
+                        index = 0;
+                    }
+                }
+
                 this.status.index.newActive = index;
                 this.$viewport.trigger('sliderBeforeChange', this.status);
                 this.options.animation(this.status);

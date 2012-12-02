@@ -24,7 +24,7 @@
             if (animation !== null) {
                 animation.stop(true, false);
             }
-console.log(propertyStartValue, propertyEndValue);
+
             animation = $({
                 prop: propertyStartValue
             }).animate({
