@@ -57,19 +57,13 @@
                 getPositionForIndex: function (index) {
                     var sign = index  > 0 ? -1 : 1,
                         element = status.element.getByIndex(status.normalizeIndex(index)),
-                        position = 0;
+                        position = Math.floor(sign * index / count) * size;
 
                     if (index > 0) {
                         position = Math.floor(index / count) * size;
-
-                        index = status.normalizeIndex(index);
-
                         position += options.horizontal ? element.position().left : element.position().top;
                     } else {
                         position = Math.floor(-index / count) * size;
-
-                        index = status.normalizeIndex(index);
-
                         position += size - (options.horizontal ? element.position().left : element.position().top);
                     }
 
@@ -78,13 +72,13 @@
                     return position;
                 },
                 normalizeIndex: function (index) {
-                    index %= count;
+                    var nIndex = index % count;
 
                     if (index <= 0) {
-                        index += count;
+                        nIndex += count;
                     }
 
-                    return index;
+                    return nIndex;
                 },
                 normalizePosition: function (position) {
                     position %= size;
