@@ -12,16 +12,6 @@
         animationDuration: 400
     };
 
-    function calculatePosition(position, size) {
-        position %= size;
-
-        if (position > 0) {
-            position -= size;
-        }
-
-        return position;
-    }
-
     $.createSliderAnimation = function (config) {
         var options = $.extend(default_options, config === undefined ? {} : config),
             animation = null,
@@ -29,26 +19,7 @@
 
         return function (status) {
             var propertyName = status.options.horizontal ? 'left' : 'top',
-                propertyEndValue = 0,
-                index = status.index.newActive,
-                sign = index  > 0 ? -1 : 1;
-
-            if (index > 0) {
-                propertyEndValue = Math.floor(index / status.original.count) * status.original.size;
-
-                index %= status.original.count;
-
-                propertyEndValue += status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top;
-            } else {
-                propertyEndValue = Math.floor(-index / status.original.count) * status.original.size;
-
-                index %= status.original.count;
-                index += status.original.count;
-
-                propertyEndValue += status.original.size - (status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top);
-            }
-
-            propertyEndValue *= sign;
+                propertyEndValue = status.getPositionForIndex(status.index.newActive);
 
             if (animation !== null) {
                 animation.stop(true, false);
@@ -63,12 +34,13 @@ console.log(propertyStartValue, propertyEndValue);
                 easing: options.animationEasing,
                 complete: function () {
                     propertyStartValue = propertyEndValue;
-                    status.$slider.css(propertyName, calculatePosition(propertyEndValue, status.original.size));
+
+                    status.$slider.css(propertyName, status.normalizePosition(propertyEndValue));
                     status.$viewport.trigger('sliderAnimationFinished');
                 },
                 step: function (now) {
                     propertyStartValue = now;
-                    status.$slider.css(propertyName, calculatePosition(now, status.original.size));
+                    status.$slider.css(propertyName, status.normalizePosition(now));
                 }
             });
         };

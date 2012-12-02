@@ -34,28 +34,69 @@
      */
     function createStatus(slider, options) {
         var size = slider.getSize(),
-            count = slider.elements.length;
+            count = slider.elements.length,
+            status = {
+                $slider: slider.$slider,
+                $viewport: slider.$viewport,
+                options: options,
+                original: {
+                    size: size,
+                    count: count
+                },
+                element: {
+                    size: size,
+                    count: count,
+                    getByIndex: function (index) {
+                        return slider.elements[index].$element;
+                    }
+                },
+                index: {
+                    active: null,
+                    newActive: null
+                },
+                getPositionForIndex: function (index) {
+                    var position,
+                        sign = index  > 0 ? -1 : 1;
 
-        return {
-            $slider: slider.$slider,
-            $viewport: slider.$viewport,
-            options: options,
-            original: {
-                size: size,
-                count: count
-            },
-            element: {
-                size: size,
-                count: count,
-                getByIndex: function (index) {
-                    return slider.elements[index].$element;
+                    if (index > 0) {
+                        position = Math.floor(index / status.original.count) * status.original.size;
+
+                        index = status.normalizeIndex(index);
+
+                        position += status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top;
+                    } else {
+                        position = Math.floor(-index / status.original.count) * status.original.size;
+
+                        index = status.normalizeIndex(index);
+
+                        position += status.original.size - (status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top);
+                    }
+
+                    position *= sign;
+
+                    return position;
+                },
+                normalizeIndex: function (index) {
+                    index %= status.original.count;
+
+                    if (index < 0) {
+                        index += status.original.count;
+                    }
+
+                    return index;
+                },
+                normalizePosition: function (position) {
+                    position %= status.original.size;
+
+                    if (position > 0) {
+                        position -= status.original.size;
+                    }
+
+                    return position;
                 }
-            },
-            index: {
-                active: null,
-                newActive: null
-            }
-        };
+            };
+
+        return status;
     }
 
     /**
