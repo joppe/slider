@@ -14,13 +14,9 @@
             slider: 'ul',
             element: 'li',
             animation: function (status) {
-                var position = status.element.getByIndex(status.element.newActiveIndex).position();
+                var position = status.normalizePosition(status.getPositionForIndex(status.index.newActive));
 
-                status.$slider.css({
-                    top: -position.top,
-                    left: -position.left
-                });
-
+                status.$slider.css(status.options.horizontal ? 'left' : 'top', position);
                 status.$viewport.trigger('sliderAnimationFinished');
             }
         };
