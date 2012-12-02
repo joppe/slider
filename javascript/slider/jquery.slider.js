@@ -10,11 +10,11 @@
     var Slider,
         default_options = {
             horizontal: true,
-            loopMode: 'none', // none|circular|auto-reverse
+            loopMode: 'none',// none|circular|auto-reverse
             slider: 'ul',
             element: 'li',
             animation: function (status) {
-                var position = status.element.getByIndex(status.newActiveIndex).position();
+                var position = status.element.getByIndex(status.element.newActiveIndex).position();
 
                 status.$slider.css({
                     top: -position.top,
@@ -24,6 +24,33 @@
                 status.$viewport.trigger('sliderAnimationFinished');
             }
         };
+
+    /**
+     * Create a slider status object
+     *
+     * @param {Slider} slider
+     * @param {Object} options
+     * @return {Object}
+     */
+    function createStatus(slider, options) {
+        return {
+            $slider: slider.$slider,
+            $viewport: slider.$viewport,
+            options: options,
+            original: {
+                size: null,
+                count: null
+            },
+            element: {
+                activeIndex: null,
+                newActiveIndex: null,
+                count: null,
+                getByIndex: function (index) {
+                    return slider.elements[index];
+                }
+            }
+        };
+    }
 
     /**
      * Constructor
@@ -37,7 +64,7 @@
         this.options = options;
 
         this.$slider = this.$viewport.find(this.options.slider);
-        this.status = this.createStatus(this);
+        this.status = createStatus(this, options);
         this.elements = this.getElements();
 
         if (this.options.loopMode !== 'none') {
@@ -48,40 +75,8 @@
     };
     Slider.prototype = {
         /**
-         * @property {jQuery} $viewport
+         * @return {Array}
          */
-        $viewport: null,
-
-        /**
-         * @property {Object} $viewport
-         */
-        options: null,
-
-        /**
-         * @property {jQuery} $viewport
-         */
-        $slider: null,
-
-        createStatus: function (slider) {
-            return {
-                $slider: slider.$slider,
-                $viewport: slider.$viewport,
-                original: {
-                    size: 0,
-                    count: 0
-                },
-                element: {
-                    size: 0,
-                    count: 0,
-                    getByIndex: function (index) {
-                        return slider.elements[index];
-                    }
-                },
-                activeIndex: null,
-                newActiveIndex: null
-            };
-        },
-
         getElements: function () {
             var self = this,
                 elements = [];
@@ -140,13 +135,13 @@
 
                     self.moveTo(0);
                 },
-                sliderNext: function (event, delta) {
+                sliderForward: function (event, delta) {
+                    var moveToIndex = self.status.element.activeIndex + delta;
+
                     event.stopPropagation();
 
-                    var moveToIndex = self.status.activeIndex + delta;
-
-                    if (self.status.newActiveIndex !== null) {
-                        moveToIndex = self.status.newActiveIndex + delta;
+                    if (self.status.element.newActiveIndex !== null) {
+                        moveToIndex = self.status.element.newActiveIndex + delta;
                     }
 
                     self.moveTo(moveToIndex);
@@ -156,13 +151,13 @@
 
                     self.moveTo(index);
                 },
-                sliderPrevious: function (event, delta) {
+                sliderReverse: function (event, delta) {
+                    var moveToIndex = self.status.element.activeIndex - delta;
+
                     event.stopPropagation();
 
-                    var moveToIndex = self.status.activeIndex - delta;
-
-                    if (self.status.newActiveIndex !== null) {
-                        moveToIndex = self.status.newActiveIndex - delta;
+                    if (self.status.element.newActiveIndex !== null) {
+                        moveToIndex = self.status.element.newActiveIndex - delta;
                     }
 
                     self.moveTo(moveToIndex);
@@ -170,8 +165,8 @@
                 sliderAnimationFinished: function (event) {
                     event.stopPropagation();
 
-                    self.status.activeIndex = self.status.newActiveIndex;
-                    self.status.newActiveIndex = null;
+                    self.status.element.activeIndex = self.status.element.newActiveIndex;
+                    self.status.element.newActiveIndex = null;
                     self.$slider.trigger('sliderAfterChange', self.status);
                 }
             });
@@ -179,8 +174,8 @@
 
         moveTo: function (index) {
             console.log(index);
-            if (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count) {
-                this.status.newActiveIndex = index;
+            if (this.options.loopMode !== 'none' || (this.options.loopMode === 'none' && index >= 0 && index < this.status.element.count)) {
+                this.status.element.newActiveIndex = index;
                 this.$viewport.trigger('sliderBeforeChange', this.status);
                 this.options.animation(this.status);
             }

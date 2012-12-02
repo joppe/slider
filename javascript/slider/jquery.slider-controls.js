@@ -60,14 +60,14 @@
                     click: function (event) {
                         event.preventDefault();
 
-                        self.$slider.trigger('sliderNext', 1);
+                        self.$slider.trigger('sliderForward', 1);
                     }
                 });
                 this.$previous.on({
                     click: function (event) {
                         event.preventDefault();
 
-                        self.$slider.trigger('sliderPrevious', 1);
+                        self.$slider.trigger('sliderReverse', 1);
                     }
                 });
 
@@ -83,12 +83,12 @@
 
                 this.$slider.on({
                     sliderAfterChange: function (event, sliderStatus) {
-                        self.updateControls(sliderStatus);
+                        self.update(sliderStatus);
                     }
                 });
             },
 
-            updateControls: function () {
+            update: function () {
 
             }
         };

@@ -8,3 +8,5 @@ Paging
 
 ## Notes
 The index keeps incrementing till the animation is finished.
+There is a problem when the slider is animating and the the sliderReverse event is fired constantly
+Keep track of the position that is not the actual position

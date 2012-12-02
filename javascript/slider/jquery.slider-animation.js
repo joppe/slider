@@ -12,23 +12,63 @@
         animationDuration: 400
     };
 
+    function calculatePosition(position, size) {
+        position %= size;
+
+        if (position > 0) {
+            position -= size;
+        }
+
+        return position;
+    }
+
     $.createSliderAnimation = function (config) {
-        var options = $.extend(default_options, config === undefined ? {} : config);
+        var options = $.extend(default_options, config === undefined ? {} : config),
+            animation = null,
+            propertyStartValue = 0;
 
         return function (status) {
-            var $newActiveSlide = $(status.getElementByIndex(status.newActiveIndex)),
-                position = $newActiveSlide.position();
+            var propertyName = status.options.horizontal ? 'left' : 'top',
+                propertyEndValue = 0,
+                index = status.element.newActiveIndex,
+                sign = index  > 0 ? -1 : 1;
 
-            status.$slider.stop(true, false);
+            if (index > 0) {
+                propertyEndValue = Math.floor(index / status.original.count) * status.original.size;
 
-            status.$slider.animate({
-                top: -position.top,
-                left: -position.left
+                index %= status.original.count;
+
+                propertyEndValue += status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top;
+            } else {
+                propertyEndValue = Math.floor(-index / status.original.count) * status.original.size;
+
+                index %= status.original.count;
+                index += status.original.count;
+
+                propertyEndValue += status.original.size - (status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top);
+            }
+
+            propertyEndValue *= sign;
+
+            if (animation !== null) {
+                animation.stop(true, false);
+            }
+
+            animation = $({
+                prop: propertyStartValue
+            }).animate({
+                prop: propertyEndValue
             }, {
-                duration: options.animationDuration,
+                duration: 800,
                 easing: options.animationEasing,
                 complete: function () {
+                    propertyStartValue = propertyEndValue;
+                    status.$slider.css(propertyName, calculatePosition(propertyEndValue, status.original.size));
                     status.$viewport.trigger('sliderAnimationFinished');
+                },
+                step: function (now) {
+                    propertyStartValue = now;
+                    status.$slider.css(propertyName, calculatePosition(now, status.original.size));
                 }
             });
         };
