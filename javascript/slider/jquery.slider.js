@@ -46,7 +46,7 @@
                 newActiveIndex: null,
                 count: null,
                 getByIndex: function (index) {
-                    return slider.elements[index];
+                    return slider.elements[index].$element;
                 }
             }
         };
@@ -66,10 +66,16 @@
         this.$slider = this.$viewport.find(this.options.slider);
         this.status = createStatus(this, options);
         this.elements = this.getElements();
+        this.status.original.count = this.elements.length;
+        this.status.element.count = this.status.original.count;
+        this.status.original.size = this.getSize();
+        this.status.element.size = this.status.original.size;
 
         if (this.options.loopMode !== 'none') {
             this.createClones();
         }
+
+        this.$slider.css(this.options.horizontal ? 'width' : 'height', this.status.element.size);
 
         this.addEventListeners();
     };
@@ -84,33 +90,45 @@
             this.$viewport.find(this.options.element).each(function () {
                 var $element = $(this);
 
-                self.status.original.size += self.options.horizontal ? $element.outerWidth() : $element.outerHeight();
-
-                elements.push($element);
+                elements.push({
+                    $element: $element,
+                    size: self.options.horizontal ? $element.outerWidth() : $element.outerHeight(),
+                    position: self.options.horizontal ? $element.position().left : $element.position().top
+                });
             });
-
-            this.status.original.count = elements.length;
-
-            this.status.element.count = this.status.original.count;
-            this.status.element.size = this.status.original.size;
-
-            this.$slider.css(this.options.horizontal ? 'width' : 'height', this.size);
 
             return elements;
         },
 
+        /**
+         * @return {Number}
+         */
+        getSize: function () {
+            var size = 0;
+
+            $.each(this.elements, function (index, element) {
+                size += element.size;
+            });
+
+            return size;
+        },
+
         createClones: function () {
             var self = this,
-                $parent = this.elements[0].parent(),
+                $parent = this.elements[0].$element.parent(),
                 viewportSize = this.options.horizontal ? this.$viewport.width() : this.$viewport.height(),
                 size = 0;
 
-            $.each(this.elements, function (index, $element) {
-                var $clone = $element.clone().addClass('clone').appendTo($parent);
+            $.each(this.elements, function (index, element) {
+                var $clone = element.$element.clone().addClass('clone').appendTo($parent);
 
                 size += self.options.horizontal ? $clone.outerWidth() : $clone.outerHeight();
 
-                self.elements.push($clone);
+                self.elements.push({
+                    $element: $clone,
+                    size: self.options.horizontal ? $clone.outerWidth() : $clone.outerHeight(),
+                    position: self.options.horizontal ? $clone.position().left : $clone.position().top
+                });
 
                 if (size >= viewportSize) {
                     return false;
