@@ -12,6 +12,16 @@
         animationDuration: 400
     };
 
+    function calculatePosition(position, size) {
+        position %= size;
+
+        if (position > 0) {
+            position -= size;
+        }
+
+        return position;
+    }
+
     $.createSliderAnimation = function (config) {
         var options = $.extend(default_options, config === undefined ? {} : config),
             animation = null,
@@ -35,12 +45,13 @@ console.log(propertyStartValue, propertyEndValue);
                 complete: function () {
                     propertyStartValue = propertyEndValue;
 
-                    status.$slider.css(propertyName, status.normalizePosition(propertyEndValue));
+                    status.$slider.css(propertyName, calculatePosition(propertyEndValue, status.original.size));
                     status.$viewport.trigger('sliderAnimationFinished');
                 },
                 step: function (now) {
                     propertyStartValue = now;
-                    status.$slider.css(propertyName, status.normalizePosition(now));
+
+                    status.$slider.css(propertyName, calculatePosition(now, status.original.size));
                 }
             });
         };

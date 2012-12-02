@@ -55,21 +55,22 @@
                     newActive: null
                 },
                 getPositionForIndex: function (index) {
-                    var position,
-                        sign = index  > 0 ? -1 : 1;
+                    var sign = index  > 0 ? -1 : 1,
+                        element = status.element.getByIndex(status.normalizeIndex(index)),
+                        position = 0;
 
                     if (index > 0) {
-                        position = Math.floor(index / status.original.count) * status.original.size;
+                        position = Math.floor(index / count) * size;
 
                         index = status.normalizeIndex(index);
 
-                        position += status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top;
+                        position += options.horizontal ? element.position().left : element.position().top;
                     } else {
-                        position = Math.floor(-index / status.original.count) * status.original.size;
+                        position = Math.floor(-index / count) * size;
 
                         index = status.normalizeIndex(index);
 
-                        position += status.original.size - (status.options.horizontal ? status.element.getByIndex(index).position().left : status.element.getByIndex(index).position().top);
+                        position += size - (options.horizontal ? element.position().left : element.position().top);
                     }
 
                     position *= sign;
@@ -77,19 +78,19 @@
                     return position;
                 },
                 normalizeIndex: function (index) {
-                    index %= status.original.count;
+                    index %= count;
 
-                    if (index < 0) {
-                        index += status.original.count;
+                    if (index <= 0) {
+                        index += count;
                     }
 
                     return index;
                 },
                 normalizePosition: function (position) {
-                    position %= status.original.size;
+                    position %= size;
 
                     if (position > 0) {
-                        position -= status.original.size;
+                        position -= size;
                     }
 
                     return position;
