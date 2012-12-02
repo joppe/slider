@@ -43,7 +43,7 @@
                     size: size,
                     count: count,
                     getByIndex: function (index) {
-                        return slider.elements[index].$element;
+                        return slider.elements[index];
                     }
                 },
                 index: {
@@ -51,19 +51,15 @@
                     newActive: null
                 },
                 getPositionForIndex: function (index) {
-                    var sign = index  > 0 ? -1 : 1,
-                        element = status.element.getByIndex(status.normalizeIndex(index)),
-                        position = Math.floor(sign * index / count) * size;
+                    var element = status.element.getByIndex(status.normalizeIndex(index)),
+                        position = Math.floor(Math.abs(index) / count) * size;
 
                     if (index > 0) {
-                        position = Math.floor(index / count) * size;
-                        position += options.horizontal ? element.position().left : element.position().top;
+                        position += element.position();
+                        position *= -1;
                     } else {
-                        position = Math.floor(-index / count) * size;
-                        position += size - (options.horizontal ? element.position().left : element.position().top);
+                        position += size - element.position();
                     }
-
-                    position *= sign;
 
                     return position;
                 },
@@ -149,10 +145,22 @@
          * @return {Object}
          */
         createElement: function ($element) {
+            var self = this;
+
             return {
                 $element: $element,
-                size: this.options.horizontal ? $element.outerWidth() : $element.outerHeight(),
-                position: this.options.horizontal ? $element.position().left : $element.position().top
+                size: self.options.horizontal ? $element.outerWidth() : $element.outerHeight(),
+                position: (function () {
+                    var pos = null;
+
+                    return function () {
+                        if (pos === null) {
+                            pos = self.options.horizontal ? $element.position().left : $element.position().top
+                        }
+
+                        return pos;
+                    };
+                }())
             };
         },
 

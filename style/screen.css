@@ -16,7 +16,9 @@ div.slider {
     padding: 0;
     list-style: none; }
     div.slider ul li {
-      float: left; }
+      float: left;
+      width: 200px;
+      height: 200px; }
       div.slider ul li a {
         position: relative;
         display: block; }
