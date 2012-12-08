@@ -12,7 +12,7 @@
 
     <body>
         <div id="example-1">
-            <div class="slider">
+            <div class="slider" id="slider-1">
                 <ul>
                     <?php
                     foreach (range(1, 6) as $index) {
@@ -38,7 +38,7 @@
             </ul>
         </div>
         <div id="example-2">
-            <div class="slider">
+            <div class="slider" id="slider-2">
                 <ul>
                     <?php
                     foreach (range(1, 6) as $index) {
@@ -64,7 +64,7 @@
             </ul>
         </div>
         <div id="example-3">
-            <div class="slider">
+            <div class="slider" id="slider-3">
                 <ul>
                     <?php
                     foreach (range(1, 6) as $index) {

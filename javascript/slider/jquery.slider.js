@@ -9,6 +9,7 @@
 
     var Slider,
         default_options = {
+            r: 0,
             horizontal: true,
             loopMode: 'none',// none|circular|auto-reverse
             slider: 'ul',
@@ -20,72 +21,6 @@
                 status.$viewport.trigger('sliderAnimationFinished');
             }
         };
-
-    /**
-     * Create a slider status object
-     *
-     * @param {Slider} slider
-     * @param {Object} options
-     * @return {Object}
-     */
-    function createStatus(slider, options) {
-        var size = slider.getSize(),
-            count = slider.elements.length,
-            status = {
-                $slider: slider.$slider,
-                $viewport: slider.$viewport,
-                options: options,
-                original: {
-                    size: size,
-                    count: count
-                },
-                element: {
-                    size: size,
-                    count: count,
-                    getByIndex: function (index) {
-                        return slider.elements[index];
-                    }
-                },
-                index: {
-                    active: null,
-                    newActive: null,
-                    max: null
-                },
-                getPositionForIndex: function (index) {
-                    var element = status.element.getByIndex(status.normalizeIndex(index)),
-                        position = Math.floor(Math.abs(index) / count) * size;
-
-                    if (index > 0 || options.loopMode !== 'circular') {
-                        position += element.position();
-                        position *= -1;
-                    } else {
-                        position += size - element.position();
-                    }
-
-                    return position;
-                },
-                normalizeIndex: function (index) {
-                    var nIndex = index % count;
-
-                    if (index <= 0 && options.loopMode === 'circular') {
-                        nIndex += count;
-                    }
-
-                    return nIndex;
-                },
-                normalizePosition: function (position) {
-                    position %= size;
-
-                    if (position > 0) {
-                        position -= size;
-                    }
-
-                    return position;
-                }
-            };
-
-        return status;
-    }
 
     /**
      * Constructor
@@ -101,7 +36,7 @@
         this.$slider = this.$viewport.find(this.options.slider);
         this.elements = this.getElements();
 
-        this.status = createStatus(this, options);
+        this.status = this.createStatus();
 
         if (this.options.loopMode === 'circular') {
             this.elements = this.elements.concat(this.createClones());
@@ -116,6 +51,70 @@
         this.addEventListeners();
     };
     Slider.prototype = {
+        /**
+         * @return {Object}
+         */
+        createStatus: function () {
+            var size = this.getSize(),
+                count = this.elements.length,
+                self = this,
+                status = {
+                    r: Math.random() * 1000,
+                    $slider: self.$slider,
+                    $viewport: self.$viewport,
+                    options: self.options,
+                    original: {
+                        size: size,
+                        count: count
+                    },
+                    element: {
+                        size: size,
+                        count: count,
+                        getByIndex: function (index) {
+                            return self.elements[index];
+                        }
+                    },
+                    index: {
+                        active: null,
+                        newActive: null,
+                        max: null
+                    },
+                    getPositionForIndex: function (index) {
+                        var element = status.element.getByIndex(status.normalizeIndex(index)),
+                            position = Math.floor(Math.abs(index) / count) * size;
+
+                        if (index > 0 || self.options.loopMode !== 'circular') {
+                            position += element.position();
+                            position *= -1;
+                        } else {
+                            position += size - element.position();
+                        }
+
+                        return position;
+                    },
+                    normalizeIndex: function (index) {
+                        var nIndex = index % count;
+
+                        if (index <= 0 && self.options.loopMode === 'circular') {
+                            nIndex += count;
+                        }
+
+                        return nIndex;
+                    },
+                    normalizePosition: function (position) {
+                        position %= size;
+
+                        if (position > 0) {
+                            position -= size;
+                        }
+
+                        return position;
+                    }
+                };
+
+            return status;
+        },
+
         /**
          * @return {Array}
          */
@@ -158,7 +157,7 @@
 
                     return function () {
                         if (pos === null) {
-                            pos = self.options.horizontal ? $element.position().left : $element.position().top
+                            pos = self.options.horizontal ? $element.position().left : $element.position().top;
                         }
 
                         return pos;
@@ -277,7 +276,7 @@
     };
 
     $.fn.slider = function (config) {
-        var options = $.extend(default_options, config === undefined ? {} : config);
+        var options = $.extend({}, default_options, config === undefined ? {} : config);
 
         return this.each(function () {
             var slider = new Slider($(this), options);
