@@ -28,31 +28,6 @@
             this.addEventListeners();
         };
         Controls.prototype = {
-            /**
-             * @property {jQuery} $container
-             */
-            $container: null,
-
-            /**
-             * @property {jQuery} $slider
-             */
-            $slider: null,
-
-            /**
-             * @property {jQuery} $next
-             */
-            $next: null,
-
-            /**
-             * @property {jQuery} $previous
-             */
-            $previous: null,
-
-            /**
-             * @property {jQuery} $numbers
-             */
-            $numbers: null,
-
             addEventListeners: function () {
                 var self = this;
 
