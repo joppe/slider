@@ -9,7 +9,6 @@
 
     var Slider,
         default_options = {
-            r: 0,
             horizontal: true,
             loopMode: 'none',// none|circular|auto-reverse
             slider: 'ul',
@@ -59,7 +58,6 @@
                 count = this.elements.length,
                 self = this,
                 status = {
-                    r: Math.random() * 1000,
                     $slider: self.$slider,
                     $viewport: self.$viewport,
                     options: self.options,
@@ -75,7 +73,7 @@
                         }
                     },
                     index: {
-                        active: null,
+                        active: self.elements.length ? 0 : null,
                         newActive: null,
                         max: null
                     },
@@ -251,6 +249,11 @@
                     self.status.index.active = self.status.index.newActive;
                     self.status.index.newActive = null;
                     self.$slider.trigger('sliderAfterChange', self.status);
+                },
+                sliderRefreshStatus: function (event) {
+                    event.stopPropagation();
+
+                    self.$slider.trigger('sliderStatus', self.status);
                 }
             });
         },
