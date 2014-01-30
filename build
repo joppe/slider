@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cat *.js | uglifyjs -o dist/jquery.slider.min.js

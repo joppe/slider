@@ -1,0 +1,17 @@
+{
+  "name": "slider",
+  "version": "0.0.0",
+  "homepage": "https://github.com/joppe/slider",
+  "authors": [
+    "Joppe Aarts <joppe@apestaartje.info>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "1.10.2"
+  },
+  "devDependencies": {
+    "jasmine-jquery": "1.5.2",
+    "bootstrap-css": "3.0.0",
+    "sass": "git://github.com/joppe/sass.git"
+  }
+}

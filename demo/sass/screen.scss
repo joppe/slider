@@ -1,0 +1,76 @@
+@import '../../bower_components/sass/mixins';
+@import '../../bower_components/sass/css3';
+
+div.slider {
+    position: relative;
+    width: 800px;
+    height: 200px;
+    overflow: hidden;
+    border: 2px solid #000000;
+
+    ul {
+        @include reset-list();
+
+        position: absolute;
+
+        li {
+            float: left;
+            width: 200px;
+            height: 200px;
+
+            a {
+                position: relative;
+                display: block;
+
+                span {
+                    position: absolute;
+                    left: 25%;
+                    top: 25%;
+                    width: 50%;
+                    height: 50%;
+                    background: rgba(255, 255, 255, 0.5);
+                    font: {
+                        size: 30px;
+                        weight: bold;
+                    }
+                    text: {
+                        decoration: none;
+                        align: center;
+                    }
+                    line-height: 50px;
+                }
+
+                img {
+                    display: block;
+                }
+            }
+        }
+    }
+}
+
+ul.slider-nav {
+    margin: 0;
+    padding: 20px 0 0 0;
+    width: 800px;
+    overflow: hidden;
+    list-style-type: none;
+
+    li {
+        &.previous {
+            float: left;
+        }
+        &.next {
+            float: right;
+        }
+
+        a {
+            font-weight: bold;
+            text-decoration: none;
+            color: green;
+
+            &.disabled {
+                color: gray;
+            }
+        }
+    }
+}
