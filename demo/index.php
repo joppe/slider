@@ -12,7 +12,7 @@
         <div class="container">
             <div class="slider" id="slider-1">
                 <ul>
-                    <?php foreach (range(1, 6) as $index) { ?>
+                    <?php foreach (range(0, 5) as $index) { ?>
                         <li>
                             <a href="#">
                                 <span><?php echo $index; ?></span>

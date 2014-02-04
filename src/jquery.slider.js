@@ -54,7 +54,13 @@
             slider: 'ul',
             element: 'li',
             gapless: false,
-            loop: false
+            loop: false,
+            animation: function ($container, viewport, elements, index, direction, ready) {
+                var element = elements[index];
+
+                $container.css('left', -element.$element.position().left);
+                ready();
+            }
         },
         Slider;
 
@@ -68,6 +74,8 @@
      */
     Slider = function ($viewport, options) {
         this.$container = $viewport.find(options.slider);
+
+        this.animation = options.animation;
 
         // calclulate the size of the viewport
         this.viewport = this.createViewport($viewport);
@@ -84,19 +92,16 @@
             this.maxIndex = this.getMaxIndex(options.gapless, options.loop);
 
             this.createClones(options.loop);
-            this.addEventHandlers();
+            this.addEventHandlers(options.loop);
         }
 
         this.$container.css({
-            left: -this.offset,
             width: this.width
         });
         this.viewport.$element.removeClass('init');
     };
     Slider.prototype = {
         maxIndex: 0,
-
-        offset: 0,
 
         activeIndex: 0,
 
@@ -119,7 +124,7 @@
                     position: $element.position()
                 });
             });
-            console.log(elements);
+
             return elements;
         },
 
@@ -153,23 +158,6 @@
 
             // create if necessary clones
             if (true === loop && this.viewport.width < this.width) {
-                // put clones in front
-                width = 0;
-
-                for (i = this.elements.length - 1; i >= 0; i -= 1) {
-                    element = this.elements[i];
-
-                    width += element.width;
-                    element.$element.clone().addClass('__clone__').prependTo(this.$container);
-
-                    if (width >= this.viewport.width) {
-                        break;
-                    }
-                }
-
-                this.offset = width;
-                this.width += width;
-
                 // put clones after
                 width = 0;
 
@@ -188,23 +176,46 @@
             }
         },
 
-        addEventHandlers: function () {
+        addEventHandlers: function (loop) {
             this.viewport.$element.on({
+                reset: bind(function (event, index) {
+                    this.moveTo(0);
+                }, this),
                 moveTo: bind(function (event, index) {
                     this.moveTo(defaults(index, 0));
+                }, this),
+                next: bind(function (event, delta) {
+                    var index = this.activeIndex + defaults(delta, 1);
+                    console.log(index);
+                    if (index > this.maxIndex) {
+                        index = (index - 1) % this.maxIndex;
+                    }
+
+                    this.moveTo(index, 1);
+                }, this),
+                previous: bind(function (event, delta) {
+                    var index = this.activeIndex + defaults(delta, -1);
+                    console.log(index);
+                    if (index < 0) {
+                        index = this.maxIndex + 1 + index;
+                    }
+
+                    this.moveTo(index, -1);
                 }, this)
             });
         },
 
-        moveTo: function (index) {
+        moveTo: function (index, direction) {
             var element;
 
             if (index >= 0 && index <= this.maxIndex) {
                 element = this.elements[index];
 
-                this.$container.css('left', -element.$element.position().left);
+                direction = direction || (this.activeIndex - index > 0 ? 1 : -1);
 
-                this.activeIndex = index;
+                this.animation(this.$container, this.viewport, this.elements, index, direction, bind(function () {
+                    this.activeIndex = index;
+                }, this));
             }
         }
     };
@@ -218,6 +229,7 @@
 
         return this.each(function () {
             var slider = new Slider($(this), options);
+            window.slider = slider;
         });
     };
 }(jQuery));
