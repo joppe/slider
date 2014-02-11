@@ -55,10 +55,33 @@
             element: 'li',
             gapless: false,
             loop: false,
-            animation: function ($container, viewport, elements, index, direction, ready) {
-                var element = elements[index];
+            animation: function (properties, ready) {
+                var $animation,
+                    width = properties.width,
+                    $container = properties.$container,
+                    targetPos = -properties.newElement.$element.position().left,
+                    deltaIndex = properties.newElement.index - properties.oldElement.index,
+                    direction = properties.direction;
 
-                $container.css('left', -element.$element.position().left);
+                if (deltaIndex < 0 && direction > 0) {
+                    targetPos += -width;
+                }
+
+                $animation = $({
+                    prop: $container.position().left
+                }).animate({
+                    prop: targetPos
+                }, {
+                    duration: 800,
+                    complete: function () {
+                        ready();
+                    },
+                    step: function (now) {
+                        console.log(now, width, now % width);
+                        $container.css('left', now % width);
+                    }
+                });
+
                 ready();
             }
         },
@@ -84,20 +107,20 @@
         // create the elements
         this.elements = this.createElements(this.$container.find(options.element));
 
-        this.width = reduce(this.elements, function (memo, element) {
-            return memo + element.width;
+        this.width = reduce(this.elements, function (width, element) {
+            return width + element.width;
         }, 0);
+        this.$container.css({
+            width: this.width
+        });
 
-        if (this.elements.length) {
+        if (this.elements.length > 1) {
             this.maxIndex = this.getMaxIndex(options.gapless, options.loop);
 
             this.createClones(options.loop);
             this.addEventHandlers(options.loop);
         }
 
-        this.$container.css({
-            width: this.width
-        });
         this.viewport.$element.removeClass('init');
     };
     Slider.prototype = {
@@ -121,7 +144,8 @@
                 elements.push({
                     $element: $element,
                     width: $element.width(),
-                    position: $element.position()
+                    position: $element.position(),
+                    index: index
                 });
             });
 
@@ -172,7 +196,9 @@
                     }
                 }
 
-                this.width += width;
+                this.$container.css({
+                    width: this.width + width
+                });
             }
         },
 
@@ -186,7 +212,7 @@
                 }, this),
                 next: bind(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, 1);
-                    console.log(index);
+
                     if (index > this.maxIndex) {
                         index = (index - 1) % this.maxIndex;
                     }
@@ -195,7 +221,7 @@
                 }, this),
                 previous: bind(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, -1);
-                    console.log(index);
+
                     if (index < 0) {
                         index = this.maxIndex + 1 + index;
                     }
@@ -213,7 +239,13 @@
 
                 direction = direction || (this.activeIndex - index > 0 ? 1 : -1);
 
-                this.animation(this.$container, this.viewport, this.elements, index, direction, bind(function () {
+                this.animation({
+                    $container: this.$container,
+                    width: this.width,
+                    oldElement: this.elements[this.activeIndex],
+                    newElement: this.elements[index],
+                    direction: direction
+                }, bind(function () {
                     this.activeIndex = index;
                 }, this));
             }
