@@ -6,6 +6,7 @@
         <link type="text/css" rel="stylesheet" href="css/screen.css">
         <script type="text/javascript" src="../bower_components/jquery/jquery.min.js"></script>
         <script type="text/javascript" src="../src/jquery.slider.js"></script>
+        <script type="text/javascript" src="../src/jquery.slider-animation.js"></script>
     </head>
 
     <body>
@@ -27,7 +28,8 @@
 
                 jQuery('#slider-1').slider({
                     gapless: true,
-                    loop: true
+                    loop: true,
+                    animation: jQuery.createSliderAnimation()
                 });
             </script>
         </div>
