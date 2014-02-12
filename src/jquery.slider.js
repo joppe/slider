@@ -7,6 +7,11 @@
 (function ($) {
     'use strict';
 
+    /**
+     * @param {Array} list
+     * @param {Function} iterator
+     * @param {Object} [context]
+     */
     function each(list, iterator, context) {
         var i,
             len = list.length;
@@ -16,6 +21,11 @@
         }
     }
 
+    /**
+     * @param {Array} list
+     * @param {Function} iterator
+     * @param {Object} [context]
+     */
     function every(list, iterator, context) {
         var i,
             len = list.length;
@@ -27,6 +37,13 @@
         }
     }
 
+    /**
+     * @param {Array} list
+     * @param {Function} iterator
+     * @param {*} memo
+     * @param {Object} [context]
+     * @returns {*}
+     */
     function reduce(list, iterator, memo, context) {
         each(list, function (value, index, list) {
             memo = iterator.call(context, memo, value, index, list);
@@ -35,6 +52,11 @@
         return memo;
     }
 
+    /**
+     * @param {*} val
+     * @param {*} def
+     * @returns {*}
+     */
     function defaults(val, def) {
         if (val === undefined) {
             val = def;
@@ -43,6 +65,11 @@
         return val;
     }
 
+    /**
+     * @param {Function} callback
+     * @param {Object} context
+     * @returns {Function}
+     */
     function bind(callback, context) {
         return function () {
             callback.apply(context, arguments);
@@ -88,12 +115,9 @@
         Slider;
 
     /**
-     * - calculate the size of the viewport
-     * - create the elements
-     * - get the total width of the elements
-     * - get the max index
-     * - create if necessary clones
-     * - add event listeners
+     * @param {jQuery} $viewport
+     * @param {Object} options
+     * @constructor
      */
     Slider = function ($viewport, options) {
         this.$container = $viewport.find(options.slider);
@@ -128,6 +152,10 @@
 
         activeIndex: 0,
 
+        /**
+         * @param $viewport
+         * @returns {{$element: *, width: *}}
+         */
         createViewport: function ($viewport) {
             return {
                 $element: $viewport,
@@ -135,6 +163,10 @@
             };
         },
 
+        /**
+         * @param {jQuery} $elements
+         * @returns {Array}
+         */
         createElements: function ($elements) {
             var elements = [];
 
@@ -152,6 +184,11 @@
             return elements;
         },
 
+        /**
+         * @param {Boolean} gapless
+         * @param {Boolean} loop
+         * @returns {number}
+         */
         getMaxIndex: function (gapless, loop) {
             var width,
                 maxIndex,
@@ -175,6 +212,9 @@
             return maxIndex;
         },
 
+        /**
+         * @param {Boolean} loop
+         */
         createClones: function (loop) {
             var width,
                 i,
@@ -202,6 +242,9 @@
             }
         },
 
+        /**
+         * @param {Boolean} loop
+         */
         addEventHandlers: function (loop) {
             this.viewport.$element.on({
                 reset: bind(function (event, index) {
@@ -213,7 +256,7 @@
                 next: bind(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, 1);
 
-                    if (index > this.maxIndex) {
+                    if (index > this.maxIndex && true === loop) {
                         index = (index - 1) % this.maxIndex;
                     }
 
@@ -222,7 +265,7 @@
                 previous: bind(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, -1);
 
-                    if (index < 0) {
+                    if (index < 0 && true === loop) {
                         index = this.maxIndex + 1 + index;
                     }
 
@@ -231,6 +274,10 @@
             });
         },
 
+        /**
+         * @param {number} index
+         * @param {number} [direction]
+         */
         moveTo: function (index, direction) {
             var element;
 
