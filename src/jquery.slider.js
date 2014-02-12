@@ -65,17 +65,6 @@
         return val;
     }
 
-    /**
-     * @param {Function} callback
-     * @param {Object} context
-     * @returns {Function}
-     */
-    function bind(callback, context) {
-        return function () {
-            callback.apply(context, arguments);
-        };
-    }
-
     var $window = $(window),
         defaultOptions = {
             slider: 'ul',
@@ -222,13 +211,13 @@
          */
         addEventHandlers: function (loop) {
             this.viewport.$element.on({
-                reset: bind(function (event, index) {
+                reset: $.proxy(function (event, index) {
                     this.moveTo(0);
                 }, this),
-                moveTo: bind(function (event, index) {
+                moveTo: $.proxy(function (event, index) {
                     this.moveTo(defaults(index, 0));
                 }, this),
-                next: bind(function (event, delta) {
+                next: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, 1);
 
                     if (index > this.maxIndex && true === loop) {
@@ -237,7 +226,7 @@
 
                     this.moveTo(index, 1);
                 }, this),
-                previous: bind(function (event, delta) {
+                previous: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, -1);
 
                     if (index < 0 && true === loop) {
@@ -246,7 +235,7 @@
 
                     this.moveTo(index, -1);
                 }, this),
-                refreshstatus: bind(function () {
+                refreshstatus: $.proxy(function () {
                     this.viewport.$element.trigger('status', this.createStatus());
                 }, this)
             });
@@ -280,7 +269,7 @@
             if (index >= 0 && index <= this.maxIndex) {
                 direction = direction || (this.activeIndex - index > 0 ? 1 : -1);
 
-                this.animation(this.createStatus(index, direction), bind(function () {
+                this.animation(this.createStatus(index, direction), $.proxy(function () {
                     this.activeIndex = index;
                 }, this));
             }
