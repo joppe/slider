@@ -7,6 +7,7 @@
         <script type="text/javascript" src="../bower_components/jquery/jquery.min.js"></script>
         <script type="text/javascript" src="../src/jquery.slider.js"></script>
         <script type="text/javascript" src="../src/jquery.slider-animation.js"></script>
+        <script type="text/javascript" src="../src/jquery.slider-controls.js"></script>
     </head>
 
     <body>
@@ -23,13 +24,29 @@
                     <?php } ?>
                 </ul>
             </div>
+            <a class="next" href="javascript:void(null);">Next</a>
+            <a class="previous" href="javascript:void(null);">Previous</a>
+            <div class="numbers"></div>
             <script type="text/javascript">
                 'use strict';
 
-                jQuery('#slider-1').slider({
+                var $slider = jQuery('#slider-1'),
+                    $numbers = jQuery('.numbers');
+
+                $slider.find('li').each(function (index) {
+                    jQuery('<a href="javascript:void(null);">' + index + '</a>').appendTo($numbers);
+                });
+
+                $slider.slider({
                     gapless: true,
                     loop: true,
                     animation: jQuery.createSliderAnimation()
+                });
+
+                jQuery('.container').sliderControls($slider, {
+                    next: 'a.next',
+                    previous: 'a.previous',
+                    numbers: '.numbers a'
                 });
             </script>
         </div>
