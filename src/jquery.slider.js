@@ -245,8 +245,29 @@
                     }
 
                     this.moveTo(index, -1);
+                }, this),
+                refreshstatus: bind(function () {
+                    this.viewport.$element.trigger('status', this.createStatus());
                 }, this)
             });
+        },
+
+        /**
+         * @param newIndex
+         * @param direction
+         * @returns {{$container: *, width: *, oldElement: *, newElement: *, direction: number}}
+         */
+        createStatus: function (newIndex, direction) {
+            newIndex = newIndex === undefined ? this.activeIndex : newIndex;
+            direction = direction === undefined ? 0 : direction;
+
+            return {
+                $container: this.$container,
+                width: this.width,
+                oldElement: this.elements[this.activeIndex],
+                newElement: this.elements[newIndex],
+                direction: direction
+            };
         },
 
         /**
@@ -257,17 +278,9 @@
             var element;
 
             if (index >= 0 && index <= this.maxIndex) {
-                element = this.elements[index];
-
                 direction = direction || (this.activeIndex - index > 0 ? 1 : -1);
 
-                this.animation({
-                    $container: this.$container,
-                    width: this.width,
-                    oldElement: this.elements[this.activeIndex],
-                    newElement: this.elements[index],
-                    direction: direction
-                }, bind(function () {
+                this.animation(this.createStatus(index, direction), bind(function () {
                     this.activeIndex = index;
                 }, this));
             }
