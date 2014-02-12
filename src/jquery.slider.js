@@ -83,32 +83,7 @@
             gapless: false,
             loop: false,
             animation: function (properties, ready) {
-                var $animation,
-                    width = properties.width,
-                    $container = properties.$container,
-                    targetPos = -properties.newElement.$element.position().left,
-                    deltaIndex = properties.newElement.index - properties.oldElement.index,
-                    direction = properties.direction;
-
-                if (deltaIndex < 0 && direction > 0) {
-                    targetPos += -width;
-                }
-
-                $animation = $({
-                    prop: $container.position().left
-                }).animate({
-                    prop: targetPos
-                }, {
-                    duration: 800,
-                    complete: function () {
-                        ready();
-                    },
-                    step: function (now) {
-                        console.log(now, width, now % width);
-                        $container.css('left', now % width);
-                    }
-                });
-
+                properties.$container.css('left', -properties.newElement.$element.position().left);
                 ready();
             }
         },
