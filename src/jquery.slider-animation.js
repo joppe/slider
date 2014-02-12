@@ -7,41 +7,37 @@
 (function ($) {
     'use strict';
 
-    var default_options = {
+    var defaultOptions = {
         animationEasing: 'swing',
         animationDuration: 400
     };
 
-    $.createSliderAnimation = function (config) {
-        var options = $.extend(default_options, config === undefined ? {} : config),
-            animation = null,
-            propertyStartValue = 0;
+    $.createSliderAnimation = function (options) {
+        options = $.extend({}, defaultOptions, options || {});
 
-        return function (status) {
-            var propertyName = status.options.horizontal ? 'left' : 'top',
-                propertyEndValue = status.getPositionForIndex(status.index.newActive);
+        return function (properties, ready) {
+            var $animation,
+                width = properties.width,
+                $container = properties.$container,
+                targetPos = -properties.newElement.$element.position().left,
+                deltaIndex = properties.newElement.index - properties.oldElement.index,
+                direction = properties.direction;
 
-            if (animation !== null) {
-                animation.stop(true, false);
+            if (deltaIndex < 0 && direction > 0) {
+                targetPos += -width;
             }
 
-            animation = $({
-                prop: propertyStartValue
+            $animation = $({
+                prop: $container.position().left
             }).animate({
-                prop: propertyEndValue
+                prop: targetPos
             }, {
                 duration: 800,
-                easing: options.animationEasing,
                 complete: function () {
-                    propertyStartValue = propertyEndValue;
-
-                    status.$slider.css(propertyName, status.normalizePosition(propertyEndValue));
-                    status.$viewport.trigger('sliderAnimationFinished');
+                    ready();
                 },
                 step: function (now) {
-                    propertyStartValue = now;
-
-                    status.$slider.css(propertyName, status.normalizePosition(now));
+                    $container.css('left', now % width);
                 }
             });
         };
