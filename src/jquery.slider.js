@@ -267,7 +267,7 @@
             var element;
 
             if (index >= 0 && index <= this.maxIndex) {
-                direction = direction || (this.activeIndex - index > 0 ? 1 : -1);
+                direction = direction || (this.activeIndex - index > 0 ? -1 : 1);
 
                 this.animation(this.createStatus(index, direction), $.proxy(function () {
                     this.activeIndex = index;
