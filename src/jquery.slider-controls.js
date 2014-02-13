@@ -13,7 +13,8 @@
             disabled: 'disabled',
             next: 'li.next a',
             previous: 'li.previous a',
-            numbers: null
+            numbers: null,
+            event: 'afterChange'
         };
 
     /**
@@ -55,39 +56,35 @@
                 this.$slider.trigger('moveTo', index);
             }, this));
 
-            this.$slider.on({
-                status: $.proxy(function (event, status) {
-                    this.update(status);
-                }, this)
-            });
+            this.$slider.on('status ' + this.options.event, $.proxy(function (event, status) {
+                this.update(status);
+            }, this));
         },
 
         /**
          * @param {Object} status
          */
         update: function (status) {
-            /*
-            if (status.options.loopMode === 'none') {
-                if (this.$next.size() > 0) {
-                    if (status.index.active >= status.index.max) {
-                        this.$next.addClass('disabled');
+            if (false === status.loop) {
+                if (this.$next.size()) {
+                    if (status.newElement.index >= status.maxIndex) {
+                        this.$next.addClass(this.options.disabled);
                     } else {
-                        this.$next.removeClass('disabled');
+                        this.$next.removeClass(this.options.disabled);
                     }
                 }
-                if (this.$previous.size() > 0) {
-                    if (status.index.active === 0) {
-                        this.$previous.addClass('disabled');
+                if (this.$previous.size()) {
+                    if (0 === status.newElement.index) {
+                        this.$previous.addClass(this.options.disabled);
                     } else {
-                        this.$previous.removeClass('disabled');
+                        this.$previous.removeClass(this.options.disabled);
                     }
                 }
             }
-            if (this.$numbers.size() > 0) {
-                this.$numbers.filter('.active.').removeClass('active');
-                this.$numbers.eq(status.normalizeIndex(status.index.activeIndex)).removeClass('active');
+            if (this.$numbers.size()) {
+                this.$numbers.filter('.' + this.options.active).removeClass(this.options.active);
+                this.$numbers.eq(status.newElement.index).addClass(this.options.active);
             }
-            */
         }
     };
 

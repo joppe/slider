@@ -11,8 +11,8 @@
     </head>
 
     <body>
-        <div class="container">
-            <div class="slider" id="slider-1">
+        <section id="slider-1">
+            <div class="slider">
                 <ul>
                     <?php foreach (range(0, 5) as $index) { ?>
                         <li>
@@ -24,31 +24,36 @@
                     <?php } ?>
                 </ul>
             </div>
-            <a class="next" href="javascript:void(null);">Next</a>
-            <a class="previous" href="javascript:void(null);">Previous</a>
-            <div class="numbers"></div>
-            <script type="text/javascript">
+            <nav class="slider">
+                <a class="previous" href="javascript:void(null);">Previous</a>
+                <div class="numbers"></div>
+                <a class="next" href="javascript:void(null);">Next</a>
+            </nav>
+        </section>
+        <script type="text/javascript">
+            jQuery(function ($) {
                 'use strict';
 
-                var $slider = jQuery('#slider-1'),
-                    $numbers = jQuery('.numbers');
+                var $demo1 = $('#slider-1'),
+                    $slider = $demo1.find('div.slider'),
+                    $numbers = $demo1.find('.numbers');
 
                 $slider.find('li').each(function (index) {
-                    jQuery('<a href="javascript:void(null);">' + index + '</a>').appendTo($numbers);
+                    $('<a href="javascript:void(null);">' + index + '</a>').appendTo($numbers);
                 });
 
                 $slider.slider({
                     gapless: true,
-                    loop: true,
-                    animation: jQuery.createSliderAnimation()
+                    loop: false,
+                    animation: $.createSliderAnimation()
                 });
 
-                jQuery('.container').sliderControls($slider, {
+                $demo1.find('nav.slider').sliderControls($slider, {
                     next: 'a.next',
                     previous: 'a.previous',
                     numbers: '.numbers a'
                 });
-            </script>
-        </div>
+            });
+        </script>
     </body>
 </html>

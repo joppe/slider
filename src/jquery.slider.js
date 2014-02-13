@@ -58,7 +58,10 @@
             horizontal: true,
             responsive: false,
             animation: function (properties, ready) {
-                properties.$container.css('left', -properties.newElement.$element.position().left);
+                var positionProperty = this.positionProperty;
+
+                properties.$container.css(positionProperty, -properties.newElement.position()[positionProperty]);
+
                 ready();
             }
         },
@@ -259,7 +262,9 @@
                 positionProperty: this.positionProperty,
                 oldElement: this.elements[this.activeIndex],
                 newElement: this.elements[newIndex],
-                direction: direction
+                direction: direction,
+                loop: this.options.loop,
+                maxIndex: this.maxIndex
             };
         },
 
