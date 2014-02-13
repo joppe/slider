@@ -271,8 +271,17 @@
             if (index >= 0 && index <= this.maxIndex) {
                 direction = direction || (this.activeIndex - index > 0 ? -1 : 1);
 
+                this.viewport.$element.trigger('beforeChange', this.createStatus());
+
                 this.animation(this.createStatus(index, direction), $.proxy(function () {
+                    var status;
+
                     this.activeIndex = index;
+
+                    status = this.createStatus();
+
+                    this.viewport.$element.trigger('status', status);
+                    this.viewport.$element.trigger('afterChange', status);
                 }, this));
             }
         }
