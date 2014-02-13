@@ -21,14 +21,17 @@
                 $container = properties.$container,
                 targetPos = -properties.newElement.$element.position().left,
                 deltaIndex = properties.newElement.index - properties.oldElement.index,
-                direction = properties.direction;
+                direction = properties.direction,
+                left = $container.position().left;
 
             if (deltaIndex < 0 && direction > 0) {
                 targetPos += -width;
+            } else if (deltaIndex > 0 && direction < 0) {
+                left -= width;
             }
 
             $animation = $({
-                prop: $container.position().left
+                prop: left
             }).animate({
                 prop: targetPos
             }, {
