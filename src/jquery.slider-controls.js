@@ -14,6 +14,12 @@
             numbers: null
         };
 
+    /**
+     * @param {jQuery} $container
+     * @param {jQuery} $slider
+     * @param {Object} options
+     * @constructor
+     */
     Controls = function ($container, $slider, options) {
         this.$container = $container;
         this.$slider = $slider;
@@ -56,6 +62,9 @@
             });
         },
 
+        /**
+         * @param {Object} status
+         */
         update: function (status) {
             /*
             if (status.options.loopMode === 'none') {
@@ -82,6 +91,11 @@
         }
     };
 
+    /**
+     * @param {jQuery} $slider
+     * @param {Object} [options]
+     * @returns {jQuery}
+     */
     $.fn.sliderControls = function ($slider, options) {
         options = $.extend({}, defaultOptions, options || {});
 
