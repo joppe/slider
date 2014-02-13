@@ -9,6 +9,8 @@
 
     var Controls,
         defaultOptions = {
+            active: 'active',
+            disabled: 'disabled',
             next: 'li.next a',
             previous: 'li.previous a',
             numbers: null
@@ -23,18 +25,16 @@
     Controls = function ($container, $slider, options) {
         this.$container = $container;
         this.$slider = $slider;
+        this.options = options;
 
         this.$next = this.$container.find(options.next);
         this.$previous = this.$container.find(options.previous);
         this.$numbers = this.$container.find(options.numbers);
 
         this.addEventListeners();
-
-        this.$slider.trigger('refreshstatus');
     };
     Controls.prototype = {
         addEventListeners: function () {
-            console.log('addEventListeners');
             this.$next.on('click', $.proxy(function (event) {
                 event.preventDefault();
 
@@ -99,8 +99,12 @@
     $.fn.sliderControls = function ($slider, options) {
         options = $.extend({}, defaultOptions, options || {});
 
-        return this.each(function () {
-            var controls = new Controls($(this), $slider, options);
+        this.each(function () {
+            new Controls($(this), $slider, options);
         });
+
+        $slider.trigger('refreshstatus');
+
+        return this;
     };
 }(jQuery));

@@ -24,22 +24,6 @@
     /**
      * @param {Array} list
      * @param {Function} iterator
-     * @param {Object} [context]
-     */
-    function every(list, iterator, context) {
-        var i,
-            len = list.length;
-
-        for (i = 0; i < len; i += 1) {
-            if (iterator.call(context, list[i], i, list) === false) {
-                break;
-            }
-        }
-    }
-
-    /**
-     * @param {Array} list
-     * @param {Function} iterator
      * @param {*} memo
      * @param {Object} [context]
      * @returns {*}
@@ -65,12 +49,14 @@
         return val;
     }
 
-    var $window = $(window),
-        defaultOptions = {
-            slider: 'ul',
+    var defaultOptions = {
+            container: 'ul',
             element: 'li',
             gapless: false,
             loop: false,
+            adjustSize: true,
+            horizontal: true,
+            responsive: false,
             animation: function (properties, ready) {
                 properties.$container.css('left', -properties.newElement.$element.position().left);
                 ready();
@@ -84,23 +70,27 @@
      * @constructor
      */
     Slider = function ($viewport, options) {
-        this.$container = $viewport.find(options.slider);
+        this.options = options;
 
+        this.sizeProperty = options.horizontal ? 'width' : 'height';
+        this.positionProperty = options.horizontal ? 'left' : 'top';
+
+        this.$container = $viewport.find(options.container);
         this.animation = options.animation;
 
-        // calclulate the size of the viewport
         this.viewport = this.createViewport($viewport);
         this.viewport.$element.addClass('init');
 
         // create the elements
         this.elements = this.createElements(this.$container.find(options.element));
 
-        this.width = reduce(this.elements, function (width, element) {
-            return width + element.width;
+        this.size = reduce(this.elements, function (size, element) {
+            return size + element.size;
         }, 0);
-        this.$container.css({
-            width: this.width
-        });
+
+        if (this.options.adjustSize) {
+            this.$container.css(this.sizeProperty, this.size);
+        }
 
         if (this.elements.length > 1) {
             this.maxIndex = this.getMaxIndex(options.gapless, options.loop);
@@ -123,7 +113,7 @@
         createViewport: function ($viewport) {
             return {
                 $element: $viewport,
-                width: $viewport.width()
+                size: $viewport[this.sizeProperty]()
             };
         },
 
@@ -132,16 +122,27 @@
          * @returns {Array}
          */
         createElements: function ($elements) {
-            var elements = [];
+            var elements = [],
+                sizeProperty = this.sizeProperty;
 
             $elements.each(function (index, el) {
                 var $element = $(el);
 
                 elements.push({
                     $element: $element,
-                    width: $element.width(),
-                    position: $element.position(),
-                    index: index
+                    size: $element[sizeProperty](),
+                    index: index,
+                    position: (function () {
+                        var pos = null;
+
+                        return function () {
+                            if (null === pos) {
+                                pos = $element.position();
+                            }
+
+                            return pos;
+                        };
+                    }())
                 });
             });
 
@@ -154,17 +155,17 @@
          * @returns {number}
          */
         getMaxIndex: function (gapless, loop) {
-            var width,
+            var size,
                 maxIndex,
                 i;
 
             if (true === gapless && false === loop) {
-                width = 0;
+                size = 0;
 
                 for (i = this.elements.length - 1; i >= 0; i -= 1) {
-                    width += this.elements[i].width;
+                    size += this.elements[i].size;
 
-                    if (width >= this.viewport.width) {
+                    if (size >= this.viewport.size) {
                         maxIndex = i;
                         break;
                     }
@@ -180,29 +181,26 @@
          * @param {Boolean} loop
          */
         createClones: function (loop) {
-            var width,
+            var size,
                 i,
                 element;
 
             // create if necessary clones
-            if (true === loop && this.viewport.width < this.width) {
-                // put clones after
-                width = 0;
+            if (true === loop && this.viewport.size < this.size) {
+                size = 0;
 
                 for (i = 0; i < this.elements.length; i += 1) {
                     element = this.elements[i];
 
-                    width += element.width;
+                    size += element.size;
                     element.$element.clone().addClass('__clone__').appendTo(this.$container);
 
-                    if (width >= this.viewport.width) {
+                    if (size >= this.viewport.size) {
                         break;
                     }
                 }
 
-                this.$container.css({
-                    width: this.width + width
-                });
+                this.$container.css(this.sizeProperty, this.size + size);
             }
         },
 
@@ -211,12 +209,14 @@
          */
         addEventHandlers: function (loop) {
             this.viewport.$element.on({
-                reset: $.proxy(function (event, index) {
+                reset: $.proxy(function () {
                     this.moveTo(0);
                 }, this),
+
                 moveTo: $.proxy(function (event, index) {
                     this.moveTo(defaults(index, 0));
                 }, this),
+
                 next: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, 1);
 
@@ -226,6 +226,7 @@
 
                     this.moveTo(index, 1);
                 }, this),
+
                 previous: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, -1);
 
@@ -235,6 +236,7 @@
 
                     this.moveTo(index, -1);
                 }, this),
+
                 refreshstatus: $.proxy(function () {
                     this.viewport.$element.trigger('status', this.createStatus());
                 }, this)
@@ -242,9 +244,9 @@
         },
 
         /**
-         * @param newIndex
-         * @param direction
-         * @returns {{$container: *, width: *, oldElement: *, newElement: *, direction: number}}
+         * @param [newIndex]
+         * @param [direction]
+         * @returns {{$container: *, size: *, sizeProperty: *, positionProperty: *, oldElement: *, newElement: *, direction: number}}
          */
         createStatus: function (newIndex, direction) {
             newIndex = newIndex === undefined ? this.activeIndex : newIndex;
@@ -252,7 +254,9 @@
 
             return {
                 $container: this.$container,
-                width: this.width,
+                size: this.size,
+                sizeProperty: this.sizeProperty,
+                positionProperty: this.positionProperty,
                 oldElement: this.elements[this.activeIndex],
                 newElement: this.elements[newIndex],
                 direction: direction
@@ -261,11 +265,9 @@
 
         /**
          * @param {number} index
-         * @param {number} [direction]
+         * @param {number} [direction] -1 or 1
          */
         moveTo: function (index, direction) {
-            var element;
-
             if (index >= 0 && index <= this.maxIndex) {
                 direction = direction || (this.activeIndex - index > 0 ? -1 : 1);
 

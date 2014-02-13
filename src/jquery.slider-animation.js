@@ -17,21 +17,22 @@
 
         return function (properties, ready) {
             var $animation,
-                width = properties.width,
+                positionProperty = properties.positionProperty,
+                size = properties.size,
                 $container = properties.$container,
-                targetPos = -properties.newElement.$element.position().left,
+                targetPos = -properties.newElement.position()[positionProperty],
                 deltaIndex = properties.newElement.index - properties.oldElement.index,
                 direction = properties.direction,
-                left = $container.position().left;
+                position = $container.position()[positionProperty];
 
             if (deltaIndex < 0 && direction > 0) {
-                targetPos += -width;
+                targetPos += -size;
             } else if (deltaIndex > 0 && direction < 0) {
-                left -= width;
+                position -= size;
             }
 
             $animation = $({
-                prop: left
+                prop: position
             }).animate({
                 prop: targetPos
             }, {
@@ -40,7 +41,7 @@
                     ready();
                 },
                 step: function (now) {
-                    $container.css('left', now % width);
+                    $container.css(positionProperty, now % size);
                 }
             });
         };
