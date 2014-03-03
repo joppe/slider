@@ -4,10 +4,7 @@
         <title>Slider demo</title>
         <link type="text/css" rel="stylesheet" href="../bower_components/bootstrap-css/css/bootstrap.min.css">
         <link type="text/css" rel="stylesheet" href="css/screen.css">
-        <script type="text/javascript" src="../bower_components/jquery/jquery.min.js"></script>
-        <script type="text/javascript" src="../src/jquery.slider.js"></script>
-        <script type="text/javascript" src="../src/jquery.slider-animation.js"></script>
-        <script type="text/javascript" src="../src/jquery.slider-controls.js"></script>
+        <script data-main="js/global.js" src="../bower_components/requirejs/require.js"></script>
     </head>
 
     <body>
@@ -30,30 +27,5 @@
                 <a class="next" href="javascript:void(null);">Next</a>
             </nav>
         </section>
-        <script type="text/javascript">
-            jQuery(function ($) {
-                'use strict';
-
-                var $demo1 = $('#slider-1'),
-                    $slider = $demo1.find('div.slider'),
-                    $numbers = $demo1.find('.numbers');
-
-                $slider.find('li').each(function (index) {
-                    $('<a href="javascript:void(null);">' + index + '</a>').appendTo($numbers);
-                });
-
-                $slider.slider({
-                    gapless: true,
-                    loop: false,
-                    animation: $.createSliderAnimation()
-                });
-
-                $demo1.find('nav.slider').sliderControls($slider, {
-                    next: 'a.next',
-                    previous: 'a.previous',
-                    numbers: '.numbers a'
-                });
-            });
-        </script>
     </body>
 </html>

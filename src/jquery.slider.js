@@ -4,6 +4,17 @@
  * @author Joppe Aarts <joppe@apestaartje.info>
  */
 
+/**
+ * create a simple iterator
+ */
+
+var Iterator = function () {
+
+};
+Iterator.prototype = {
+
+};
+
 (function ($) {
     'use strict';
 

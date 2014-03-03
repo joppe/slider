@@ -1,0 +1,189 @@
+/**
+ * @param number $radius
+ */
+/**
+ * @param number $opacity [0.0-1.0]
+ */
+/**
+ * @param string $value
+ *
+ * none:        The text of the element and sub-elements will appear as if they cannot be selected.
+ *              Any use of Selection however will contain these elements.
+ * text:        The text can be selected by the user.
+ * -moz-none:   The text of the element and sub-elements cannot be selected,
+ *              but selection can be enabled on sub-elements using -moz-user-select:text
+ * all:         In an HTML editor, if a double-click or context-click occurred in sub-elements,
+ *              the highest ancestor with this value will be selected.
+ * element:     Supported in Firefox and Internet Explorer. Enables selection to start within
+ *              the element; however, the selection will be contained by the bounds of that element.
+ */
+/**
+ * @param string $name
+ * @param number $duration [ease linear ease-in ease-out ease-in-out]
+ * @param number|string $iteration-count
+ */
+/**
+ * @param string $property
+ * @param number $duration [ease linear ease-in ease-out ease-in-out]
+ * @param string $timing-function
+ * @param number $delay default:0
+ */
+/**
+ * @param number $horizontal
+ * @param number $vertical
+ * @param number $blur
+ * @param number $spread
+ * @param string $color
+ * @param string $inset default:''
+ */
+/**
+ * @param number $horizontal
+ * @param number $vertical
+ * @param number $blur
+ * @param string $color
+ */
+/**
+ * @param number $degree [0-360]
+ */
+/**
+ * @param color $start-color
+ * @param color $end-color
+ */
+/**
+ * reset the spacing of an element
+ */
+/**
+ * reset a list element
+ */
+/**
+ * reset the font size
+ * @param number $line-height
+ */
+/**
+ * calculate the font size and line height in em's
+ *
+ * @param number $font-size
+ * @param number $line-height, default -1
+ */
+/**
+ * create sprites
+ *
+ * @param list $sprites
+ * @param number $sprite-width
+ * @param number $sprite-height
+ * @param number $sprite-items-per-row
+ * @param number $background-color
+ * @param number $image-path
+ * @param number $sprite-offset-width, default 0
+ * @param number $sprite-offset-height, default 0
+ */
+/**
+ * @param string $what
+ * @param number $duration
+ */
+/**
+ * @param number $columns
+ * @param number $padding
+ * @param number $start
+ * @param number $end
+ */
+/**
+ * @param number $radius
+ */
+/**
+ * @param number $opacity [0.0-1.0]
+ */
+/**
+ * @param string $value
+ *
+ * none:        The text of the element and sub-elements will appear as if they cannot be selected.
+ *              Any use of Selection however will contain these elements.
+ * text:        The text can be selected by the user.
+ * -moz-none:   The text of the element and sub-elements cannot be selected,
+ *              but selection can be enabled on sub-elements using -moz-user-select:text
+ * all:         In an HTML editor, if a double-click or context-click occurred in sub-elements,
+ *              the highest ancestor with this value will be selected.
+ * element:     Supported in Firefox and Internet Explorer. Enables selection to start within
+ *              the element; however, the selection will be contained by the bounds of that element.
+ */
+/**
+ * @param string $name
+ * @param number $duration [ease linear ease-in ease-out ease-in-out]
+ * @param number|string $iteration-count
+ */
+/**
+ * @param string $property
+ * @param number $duration [ease linear ease-in ease-out ease-in-out]
+ * @param string $timing-function
+ * @param number $delay default:0
+ */
+/**
+ * @param number $horizontal
+ * @param number $vertical
+ * @param number $blur
+ * @param number $spread
+ * @param string $color
+ * @param string $inset default:''
+ */
+/**
+ * @param number $horizontal
+ * @param number $vertical
+ * @param number $blur
+ * @param string $color
+ */
+/**
+ * @param number $degree [0-360]
+ */
+/**
+ * @param color $start-color
+ * @param color $end-color
+ */
+div.slider {
+  position: relative;
+  width: 800px;
+  height: 200px;
+  overflow: hidden;
+  border: 2px solid #000000; }
+  div.slider ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    position: absolute; }
+    div.slider ul li {
+      float: left;
+      width: 200px;
+      height: 200px; }
+      div.slider ul li a {
+        position: relative;
+        display: block; }
+        div.slider ul li a span {
+          position: absolute;
+          left: 25%;
+          top: 25%;
+          width: 50%;
+          height: 50%;
+          background: rgba(255, 255, 255, 0.5);
+          font-size: 30px;
+          font-weight: bold;
+          text-decoration: none;
+          text-align: center;
+          line-height: 50px; }
+        div.slider ul li a img {
+          display: block; }
+
+ul.slider-nav {
+  margin: 0;
+  padding: 20px 0 0 0;
+  width: 800px;
+  overflow: hidden;
+  list-style-type: none; }
+  ul.slider-nav li.previous {
+    float: left; }
+  ul.slider-nav li.next {
+    float: right; }
+  ul.slider-nav li a {
+    font-weight: bold;
+    text-decoration: none;
+    color: green; }
+    ul.slider-nav li a.disabled {
+      color: gray; }
