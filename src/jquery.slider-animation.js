@@ -17,13 +17,13 @@
 
         return function (properties, ready) {
             var $animation,
-                positionProperty = properties.positionProperty,
+                posProp = properties.posProp,
                 size = properties.size,
-                $container = properties.$container,
-                targetPos = -properties.newElement.position()[positionProperty],
-                deltaIndex = properties.newElement.index - properties.oldElement.index,
+                $slider = properties.$slider,
+                targetPos = -properties.newElement.getPosition(),
+                deltaIndex = properties.newElement.getIndex() - properties.oldElement.getIndex(),
                 direction = properties.direction,
-                position = $container.position()[positionProperty];
+                position = $slider.position()[posProp];
 
             if (deltaIndex < 0 && direction > 0) {
                 targetPos += -size;
@@ -41,7 +41,7 @@
                     ready();
                 },
                 step: function (now) {
-                    $container.css(positionProperty, now % size);
+                    $slider.css(posProp, now % size);
                 }
             });
         };

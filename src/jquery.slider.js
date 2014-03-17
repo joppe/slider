@@ -4,48 +4,25 @@
  * @author Joppe Aarts <joppe@apestaartje.info>
  */
 
-/**
- * create a simple iterator
- */
-
-var Iterator = function () {
-
-};
-Iterator.prototype = {
-
-};
-
 (function ($) {
     'use strict';
 
-    /**
-     * @param {Array} list
-     * @param {Function} iterator
-     * @param {Object} [context]
-     */
-    function each(list, iterator, context) {
-        var i,
-            len = list.length;
+    var defaultOptions = {
+            slider: 'ul',
+            elements: 'li',
+            gapless: true,
+            loop: false,
+            adjustSize: true,
+            horizontal: true,
+            animation: function (properties, ready) {
+                var posProp = properties.posProp;
 
-        for (i = 0; i < len; i += 1) {
-            iterator.call(context, list[i], i, list);
-        }
-    }
+                properties.$slider.css(posProp, -properties.newElement.getPosition());
 
-    /**
-     * @param {Array} list
-     * @param {Function} iterator
-     * @param {*} memo
-     * @param {Object} [context]
-     * @returns {*}
-     */
-    function reduce(list, iterator, memo, context) {
-        each(list, function (value, index, list) {
-            memo = iterator.call(context, memo, value, index, list);
-        });
-
-        return memo;
-    }
+                ready();
+            }
+        },
+        Slider;
 
     /**
      * @param {*} val
@@ -60,169 +37,140 @@ Iterator.prototype = {
         return val;
     }
 
-    var defaultOptions = {
-            container: 'ul',
-            element: 'li',
-            gapless: false,
-            loop: false,
-            adjustSize: true,
-            horizontal: true,
-            responsive: false,
-            animation: function (properties, ready) {
-                var positionProperty = this.positionProperty;
-
-                properties.$container.css(positionProperty, -properties.newElement.position()[positionProperty]);
-
-                ready();
-            }
-        },
-        Slider;
-
-    /**
-     * @param {jQuery} $viewport
-     * @param {Object} options
-     * @constructor
-     */
     Slider = function ($viewport, options) {
-        this.options = options;
-
-        this.sizeProperty = options.horizontal ? 'width' : 'height';
-        this.positionProperty = options.horizontal ? 'left' : 'top';
-
-        this.$container = $viewport.find(options.container);
+        this.gapless = options.gapless;
+        this.loop = options.loop;
+        this.adjustSize = options.adjustSize;
+        this.horizontal = options.horizontal;
         this.animation = options.animation;
 
-        this.viewport = this.createViewport($viewport);
-        this.viewport.$element.addClass('init');
+        this.sizeProp = options.horizontal ? 'width' : 'height';
+        this.posProp = options.horizontal ? 'left' : 'top';
 
-        // create the elements
-        this.elements = this.createElements(this.$container.find(options.element));
+        this.$viewport = $viewport;
+        this.$viewport.addClass('init');
 
-        this.size = reduce(this.elements, function (size, element) {
-            return size + element.size;
-        }, 0);
+        this.$slider = $viewport.find(options.slider);
 
-        if (this.options.adjustSize) {
-            this.$container.css(this.sizeProperty, this.size);
+        this.elements = this.createElements($viewport.find(options.elements));
+        this.size = this.getSize();
+
+        if (this.adjustSize) {
+            this.$slider.css(this.sizeProp, this.size);
         }
 
         if (this.elements.length > 1) {
-            this.maxIndex = this.getMaxIndex(options.gapless, options.loop);
+            this.activeIndex = 0;
+            this.maxIndex = this.getMaxIndex();
 
-            this.createClones(options.loop);
-            this.addEventHandlers(options.loop);
+            this.createClones();
+            this.addEventHandlers();
         }
 
-        this.viewport.$element.removeClass('init');
+        this.$viewport.removeClass('init');
     };
     Slider.prototype = {
-        maxIndex: 0,
-
-        activeIndex: 0,
-
         /**
-         * @param $viewport
-         * @returns {{$element: *, width: *}}
-         */
-        createViewport: function ($viewport) {
-            return {
-                $element: $viewport,
-                size: $viewport[this.sizeProperty]()
-            };
-        },
-
-        /**
-         * @param {jQuery} $elements
+         * @param {jQuery} $els
          * @returns {Array}
          */
-        createElements: function ($elements) {
-            var elements = [],
-                sizeProperty = this.sizeProperty;
+        createElements: function ($els) {
+            var els = [],
+                sizeProp = this.sizeProp,
+                posProp = this.posProp;
 
-            $elements.each(function (index, el) {
-                var $element = $(el);
+            $els.each(function (i) {
+                var $el = $(this);
 
-                elements.push({
-                    $element: $element,
-                    size: $element[sizeProperty](),
-                    index: index,
-                    position: (function () {
-                        var pos = null;
+                els.push({
+                    getElement: function () {
+                        return $el;
+                    },
+                    getSize: function () {
+                        return $el[sizeProp]();
+                    },
+                    getIndex: function () {
+                        return i;
+                    },
+                    getPosition: function () {
+                        var pos = $el.position();
 
-                        return function () {
-                            if (null === pos) {
-                                pos = $element.position();
-                            }
-
-                            return pos;
-                        };
-                    }())
+                        return pos[posProp];
+                    }
                 });
             });
 
-            return elements;
+            return els;
         },
 
         /**
-         * @param {Boolean} gapless
-         * @param {Boolean} loop
          * @returns {number}
          */
-        getMaxIndex: function (gapless, loop) {
-            var size,
-                maxIndex,
+        getMaxIndex: function () {
+            var size = 0,
+                viewportSize,
+                maxIndex = this.elements.length - 1,
                 i;
 
-            if (true === gapless && false === loop) {
-                size = 0;
+            if (true === this.gapless && false === this.loop) {
+                viewportSize = this.$viewport[this.sizeProp]();
 
-                for (i = this.elements.length - 1; i >= 0; i -= 1) {
-                    size += this.elements[i].size;
+                for (i = maxIndex; i >= 0; i -= 1) {
+                    size += this.elements[i].getSize();
 
-                    if (size >= this.viewport.size) {
+                    if (size >= viewportSize) {
                         maxIndex = i;
                         break;
                     }
                 }
-            } else {
-                maxIndex = this.elements.length - 1;
             }
 
             return maxIndex;
         },
 
         /**
-         * @param {Boolean} loop
+         * @returns {number}
          */
-        createClones: function (loop) {
-            var size,
+        getSize: function () {
+            var size = 0;
+
+            $.each(this.elements, function (i, el) {
+                size += el.getSize();
+            });
+
+            return size;
+        },
+
+        createClones: function () {
+            var size = 0,
+                viewportSize,
                 i,
-                element;
+                el;
 
             // create if necessary clones
-            if (true === loop && this.viewport.size < this.size) {
-                size = 0;
+            if (true === this.loop) {
+                viewportSize = this.$viewport[this.sizeProp]();
 
-                for (i = 0; i < this.elements.length; i += 1) {
-                    element = this.elements[i];
+                if (viewportSize < this.size) {
 
-                    size += element.size;
-                    element.$element.clone().addClass('__clone__').appendTo(this.$container);
+                    for (i = 0; i < this.elements.length; i += 1) {
+                        el = this.elements[i];
 
-                    if (size >= this.viewport.size) {
-                        break;
+                        size += el.getSize();
+                        el.getElement().clone().addClass('__clone__').appendTo(this.$slider);
+
+                        if (size >= viewportSize) {
+                            break;
+                        }
                     }
-                }
 
-                this.$container.css(this.sizeProperty, this.size + size);
+                    this.$slider.css(this.sizeProp, this.size + size);
+                }
             }
         },
 
-        /**
-         * @param {Boolean} loop
-         */
-        addEventHandlers: function (loop) {
-            this.viewport.$element.on({
+        addEventHandlers: function () {
+            this.$viewport.on({
                 reset: $.proxy(function () {
                     this.moveTo(0);
                 }, this),
@@ -234,7 +182,7 @@ Iterator.prototype = {
                 next: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, 1);
 
-                    if (index > this.maxIndex && true === loop) {
+                    if (index > this.maxIndex && true === this.loop) {
                         index = (index - 1) % this.maxIndex;
                     }
 
@@ -244,7 +192,7 @@ Iterator.prototype = {
                 previous: $.proxy(function (event, delta) {
                     var index = this.activeIndex + defaults(delta, -1);
 
-                    if (index < 0 && true === loop) {
+                    if (index < 0 && true === this.loop) {
                         index = this.maxIndex + 1 + index;
                     }
 
@@ -252,30 +200,30 @@ Iterator.prototype = {
                 }, this),
 
                 refreshstatus: $.proxy(function () {
-                    this.viewport.$element.trigger('status', this.createStatus());
+                    this.$viewport.trigger('status', this.createStatus());
                 }, this)
             });
         },
 
         /**
-         * @param [newIndex]
-         * @param [direction]
-         * @returns {{$container: *, size: *, sizeProperty: *, positionProperty: *, oldElement: *, newElement: *, direction: number}}
+         * @param {number} [newIndex]
+         * @param {number} [direction]
+         * @returns {{$slider: *, sizeProp: *, posProp: *, oldElement: *, newElement: *, direction: number, loop: *, maxIndex: *, size: *}}
          */
         createStatus: function (newIndex, direction) {
             newIndex = newIndex === undefined ? this.activeIndex : newIndex;
             direction = direction === undefined ? 0 : direction;
 
             return {
-                $container: this.$container,
-                size: this.size,
-                sizeProperty: this.sizeProperty,
-                positionProperty: this.positionProperty,
+                $slider: this.$slider,
+                sizeProp: this.sizeProp,
+                posProp: this.posProp,
                 oldElement: this.elements[this.activeIndex],
                 newElement: this.elements[newIndex],
                 direction: direction,
-                loop: this.options.loop,
-                maxIndex: this.maxIndex
+                loop: this.loop,
+                maxIndex: this.maxIndex,
+                size: this.size
             };
         },
 
@@ -287,7 +235,7 @@ Iterator.prototype = {
             if (index >= 0 && index <= this.maxIndex) {
                 direction = direction || (this.activeIndex - index > 0 ? -1 : 1);
 
-                this.viewport.$element.trigger('beforeChange', this.createStatus());
+                this.$viewport.trigger('beforechange', this.createStatus());
 
                 this.animation(this.createStatus(index, direction), $.proxy(function () {
                     var status;
@@ -296,8 +244,8 @@ Iterator.prototype = {
 
                     status = this.createStatus();
 
-                    this.viewport.$element.trigger('status', status);
-                    this.viewport.$element.trigger('afterChange', status);
+                    this.$viewport.trigger('status', status);
+                    this.$viewport.trigger('afterchange', status);
                 }, this));
             }
         }

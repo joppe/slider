@@ -11,9 +11,9 @@
         defaultOptions = {
             active: 'active',
             disabled: 'disabled',
-            next: 'li.next a',
-            previous: 'li.previous a',
-            numbers: null,
+            next: '.next',
+            previous: '.previous',
+            numbers: '.number',
             event: 'afterChange'
         };
 
@@ -67,14 +67,14 @@
         update: function (status) {
             if (false === status.loop) {
                 if (this.$next.size()) {
-                    if (status.newElement.index >= status.maxIndex) {
+                    if (status.newElement.getIndex() >= status.maxIndex) {
                         this.$next.addClass(this.options.disabled);
                     } else {
                         this.$next.removeClass(this.options.disabled);
                     }
                 }
                 if (this.$previous.size()) {
-                    if (0 === status.newElement.index) {
+                    if (0 === status.newElement.getIndex()) {
                         this.$previous.addClass(this.options.disabled);
                     } else {
                         this.$previous.removeClass(this.options.disabled);
@@ -83,7 +83,7 @@
             }
             if (this.$numbers.size()) {
                 this.$numbers.filter('.' + this.options.active).removeClass(this.options.active);
-                this.$numbers.eq(status.newElement.index).addClass(this.options.active);
+                this.$numbers.eq(status.newElement.getIndex()).addClass(this.options.active);
             }
         }
     };
