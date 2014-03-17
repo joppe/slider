@@ -36,7 +36,8 @@
 
                 var $container = $('#slider-1'),
                     $slider = $container.find('div.slider').slider({
-                        loop: true
+                        loop: true,
+                        animation: $.createSliderAnimation()
                     });
 
                 $container.sliderControls($slider, {

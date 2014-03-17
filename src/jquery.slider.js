@@ -25,6 +25,35 @@
         Slider;
 
     /**
+     * @param {Array} list
+     * @param {Function} iterator
+     * @param {Object} [context]
+     */
+    function each(list, iterator, context) {
+        var i,
+            len = list.length;
+
+        for (i = 0; i < len; i += 1) {
+            iterator.call(context, list[i], i, list);
+        }
+    }
+
+    /**
+     * @param {Array} list
+     * @param {Function} iterator
+     * @param {*} memo
+     * @param {Object} [context]
+     * @returns {*}
+     */
+    function reduce(list, iterator, memo, context) {
+        each(list, function (value, index, list) {
+            memo = iterator.call(context, memo, value, index, list);
+        });
+
+        return memo;
+    }
+
+    /**
      * @param {*} val
      * @param {*} def
      * @returns {*}
@@ -52,12 +81,10 @@
 
         this.$slider = $viewport.find(options.slider);
 
-        this.elements = this.createElements($viewport.find(options.elements));
-        this.size = this.getSize();
-
-        if (this.adjustSize) {
-            this.$slider.css(this.sizeProp, this.size);
-        }
+        this.elements = this.createElements($viewport.find(options.elements + ':not(.__clone__)'));
+        this.size = reduce(this.elements, function (size, el) {
+            return size + el.getSize();
+        }, 0);
 
         if (this.elements.length > 1) {
             this.activeIndex = 0;
@@ -65,6 +92,12 @@
 
             this.createClones();
             this.addEventHandlers();
+        }
+
+        if (this.adjustSize) {
+            this.$slider.css(this.sizeProp, reduce($viewport.find(options.elements).toArray(), function (size, el) {
+                return size + $(el)[this.sizeProp]();
+            }, 0, this));
         }
 
         this.$viewport.removeClass('init');
@@ -126,19 +159,6 @@
             }
 
             return maxIndex;
-        },
-
-        /**
-         * @returns {number}
-         */
-        getSize: function () {
-            var size = 0;
-
-            $.each(this.elements, function (i, el) {
-                size += el.getSize();
-            });
-
-            return size;
         },
 
         createClones: function () {
